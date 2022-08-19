@@ -86,7 +86,7 @@ fn spawn_wave(
             let enemy_type = EnemyType::from_u32(rng.gen_range(0..7)).unwrap();
             commands.spawn_bundle(EnemyBundle {
                 health: Health(100.0),
-                attack_range: AttackRange(1.0),
+                attack_range: AttackRange(10000.0),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 damage: Damage(10.0),
                 attack_type: AttackType::Ranged(5.0, Projectile::Enemy),
