@@ -1,6 +1,6 @@
 use crate::{
     consts::{HEIGHT, SPRITESCALE, WIDTH},
-    resources::{SpawnTimer, Sprites},
+    resources::{EnemiesCount, SpawnTimer, Sprites},
     EnemyType, GameState, InGameState,
 };
 use bevy::prelude::*;
@@ -12,6 +12,7 @@ pub struct SpawnPlugin;
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(SpawnTimer(Timer::from_seconds(1.0, true)))
+            .insert_resource(EnemiesCount(0))
             .add_system_set(
                 ConditionSet::new()
                     .run_in_state(GameState::InGame(InGameState::DownTime))
@@ -26,10 +27,11 @@ fn spawn_wave(
     sprites: Res<Sprites>,
     time: Res<Time>,
     mut spawn_timer: ResMut<SpawnTimer>,
+    mut enemy_count: ResMut<EnemiesCount>,
 ) {
     spawn_timer.tick(time.delta());
 
-    if spawn_timer.just_finished() {
+    if spawn_timer.just_finished() && **enemy_count <= 5 {
         let mut rng = rand::thread_rng();
         let rng_chance: f32 = rng.gen();
 
@@ -55,6 +57,7 @@ fn spawn_wave(
                 ),
                 ..default()
             });
+            **enemy_count += 1;
         }
     }
 }

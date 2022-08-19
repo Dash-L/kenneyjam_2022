@@ -38,3 +38,6 @@ pub struct Sprites {
 }
 #[derive(Deref, DerefMut)]
 pub struct SpawnTimer(pub Timer);
+
+#[derive(Deref, DerefMut)]
+pub struct EnemiesCount(pub u32);
