@@ -15,10 +15,16 @@ mod resources;
 use resources::*;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+pub enum InGameState {
+    DownTime,
+    Wave,
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum GameState {
     Load,
     Setup,
-    InGame,
+    InGame(InGameState),
 }
 
 fn main() {
@@ -38,6 +44,9 @@ fn main() {
                 .with_collection::<Sprites>(),
         )
         .add_plugins(DefaultPlugins)
+        .add_plugin(SpawnPlugin)
+        .add_plugin(PlayerPlugin)
+        .add_plugin(AutoBattlePlugin)
         .add_enter_system(GameState::Setup, setup)
         .run();
 }
@@ -49,4 +58,6 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         transform: Transform::from_scale(Vec3::splat(5.0)),
         ..default()
     });
+
+    commands.insert_resource(NextState(GameState::InGame(InGameState::DownTime)));
 }
