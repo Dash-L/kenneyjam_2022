@@ -73,12 +73,19 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         ..default()
     });
     commands.spawn_bundle(PlayerBundle {
-        health: Health(100.0),
         speed: Speed(10.0),
-        sprite: SpriteBundle {
-            texture: sprites.player.clone(),
-            transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE))
-                .with_translation(Vec3::new(0., 0., 900.)),
+        ally: AllyBundle {
+            attack_range: AttackRange(5.0),
+            attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
+            attack_type: AttackType::Melee,
+            damage: Damage(5.0),
+            health: Health(100.0),
+            sprite: SpriteBundle {
+                texture: sprites.player.clone(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE))
+                    .with_translation(Vec3::new(0., 0., 900.)),
+                ..default()
+            },
             ..default()
         },
         ..default()

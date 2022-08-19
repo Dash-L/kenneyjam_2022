@@ -9,7 +9,7 @@ pub struct AttackTimer(pub Timer);
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct AttackRange(pub f32);
 
-#[derive(Component, Default)]
+#[derive(Component, Clone, Default)]
 pub enum AttackType {
     #[default]
     Melee,
@@ -40,18 +40,13 @@ pub struct Velocity(pub Vec2);
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct Speed(pub f32);
 
-#[derive(Component)]
-pub struct Attack(pub Entity);
-
 #[derive(Bundle, Default)]
 pub struct PlayerBundle {
-    pub health: Health,
     pub velocity: Velocity,
     pub speed: Speed,
     pub _p: Player,
-    pub _a: Ally,
     #[bundle]
-    pub sprite: SpriteBundle,
+    pub ally: AllyBundle,
 }
 
 #[derive(Bundle, Default)]
