@@ -15,12 +15,14 @@ pub struct SpawnPlugin;
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemySpawnTimer(Timer::from_seconds(1.0, true)))
-            .insert_resource(AllySpawnTimer(Timer::from_seconds(10.0, true)))
+            .insert_resource(AllySpawnTimer(Timer::from_seconds(1.0, true)))
             .insert_resource(EnemiesCount(0))
+            .insert_resource(AllyCount(0))
             .add_system_set(
                 ConditionSet::new()
                     .run_in_state(GameState::InGame(InGameState::DownTime))
                     .with_system(spawn_wave)
+                    .with_system(spawn_allies)
                     .into(),
             );
     }
@@ -34,17 +36,17 @@ fn spawn_allies(
 ) {
     spawn_timer.tick(time.delta());
 
-    if spawn_timer.just_finished() && **ally_count > 1 {
+    if spawn_timer.just_finished() && **ally_count < 1 {
         let mut rng = rand::thread_rng();
 
         println!("Ally Spawned!");
         let ally_type = AllyType::from_u32(rng.gen_range(0..6)).unwrap();
         commands.spawn_bundle(AllyBundle {
             health: Health(100.0),
-            attack_range: AttackRange(1.0),
+            attack_range: AttackRange(1000.0),
             attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
             damage: Damage(10.0),
-            attack_type: AttackType::Ranged(5.0, Projectile::Enemy),
+            attack_type: AttackType::Ranged(5.0, Projectile::Ally),
             sprite: SpriteBundle {
                 texture: match ally_type {
                     AllyType::Alchemist => sprites.alchemist.clone(),
@@ -65,6 +67,7 @@ fn spawn_allies(
             },
             ..default()
         });
+        **ally_count += 1;
     }
 }
 
