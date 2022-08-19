@@ -12,8 +12,14 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             ConditionSet::new()
-                //.run_in_state(GameState::InGame(InGameState::Wave))
                 .run_in_state(GameState::InGame(InGameState::DownTime))
+                .with_system(calc_velocity)
+                .with_system(move_player)
+                .into(),
+        )
+        .add_system_set(
+            ConditionSet::new()
+                .run_in_state(GameState::InGame(InGameState::Wave))
                 .with_system(calc_velocity)
                 .with_system(move_player)
                 .into(),
