@@ -31,6 +31,10 @@ pub struct Sprites {
     pub rat2: Handle<Image>,
     #[asset(path = "sprites/wizard.png")]
     pub wizard: Handle<Image>,
+    #[asset(path = "sprites/spider.png")]
+    pub spider: Handle<Image>,
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
 }
+#[derive(Deref, DerefMut)]
+pub struct SpawnTimer(pub Timer);

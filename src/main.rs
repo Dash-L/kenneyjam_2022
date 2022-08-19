@@ -12,9 +12,11 @@ mod helpers;
 use helpers::*;
 
 mod plugins;
+use num_derive::FromPrimitive;
 use plugins::*;
 
 mod resources;
+use rand_derive::Rand;
 use resources::*;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -28,6 +30,16 @@ pub enum GameState {
     Load,
     Setup,
     InGame(InGameState),
+}
+#[derive(Clone, Copy, PartialEq, Eq, FromPrimitive)]
+pub enum EnemyType {
+    Bat,
+    Cactus,
+    EvilWizard,
+    Ghost,
+    Lobster,
+    Rat,
+    Spider,
 }
 
 fn main() {
