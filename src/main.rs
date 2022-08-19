@@ -68,7 +68,6 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
             ally_type: AllyType::Player,
             attack_range: AttackRange(5.0),
             attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
-            attack_type: AttackType::Melee,
             damage: Damage(5.0),
             health: Health(100.0),
             sprite: SpriteBundle {
