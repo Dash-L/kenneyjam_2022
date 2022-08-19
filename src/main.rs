@@ -30,25 +30,6 @@ pub enum GameState {
     Setup,
     InGame(InGameState),
 }
-#[derive(Clone, Copy, PartialEq, Eq, FromPrimitive)]
-pub enum EnemyType {
-    Bat,
-    Cactus,
-    EvilWizard,
-    Ghost,
-    Lobster,
-    Rat,
-    Spider,
-}
-#[derive(Clone, Copy, PartialEq, Eq, FromPrimitive)]
-pub enum AllyType {
-    Alchemist,
-    Archer,
-    Cyclops,
-    Dwarf,
-    Knight,
-    Wizard,
-}
 
 fn main() {
     App::new()
@@ -84,6 +65,7 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
     commands.spawn_bundle(PlayerBundle {
         speed: Speed(10.0),
         ally: AllyBundle {
+            ally_type: AllyType::Player,
             attack_range: AttackRange(5.0),
             attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
             attack_type: AttackType::Melee,

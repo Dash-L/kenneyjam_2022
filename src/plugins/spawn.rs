@@ -42,6 +42,7 @@ fn spawn_allies(
         println!("Ally Spawned!");
         let ally_type = AllyType::from_u32(rng.gen_range(0..6)).unwrap();
         commands.spawn_bundle(AllyBundle {
+            ally_type,
             health: Health(100.0),
             attack_range: AttackRange(1000.0),
             attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -55,6 +56,7 @@ fn spawn_allies(
                     AllyType::Dwarf => sprites.dwarf.clone(),
                     AllyType::Knight => sprites.knight.clone(),
                     AllyType::Wizard => sprites.wizard.clone(),
+                    AllyType::Player => sprites.player.clone(),
                 },
                 transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(
                     Vec3::new(
@@ -88,6 +90,7 @@ fn spawn_wave(
             println!("enemy spawned!");
             let enemy_type = EnemyType::from_u32(rng.gen_range(0..7)).unwrap();
             commands.spawn_bundle(EnemyBundle {
+                enemy_type,
                 health: Health(100.0),
                 attack_range: AttackRange(10000.0),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
