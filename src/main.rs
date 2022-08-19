@@ -2,6 +2,9 @@ use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_asset_loader::prelude::*;
 use iyes_loopless::prelude::*;
 
+mod components;
+use components::*;
+
 mod consts;
 use consts::*;
 
