@@ -12,7 +12,6 @@ iyes_loopless = "0.7.1"
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 rand = "0.8.5"
-rand_derive = "0.5.0"
 # Enable a small amount of optimization in debug mode
 [profile.dev]
 opt-level = 1

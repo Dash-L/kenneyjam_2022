@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Clone)]
 pub struct Sprites {
     #[asset(path = "sprites/player.png")]
     pub player: Handle<Image>,

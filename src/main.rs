@@ -16,7 +16,6 @@ use num_derive::FromPrimitive;
 use plugins::*;
 
 mod resources;
-use rand_derive::Rand;
 use resources::*;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -73,15 +72,17 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         transform: Transform::from_scale(Vec3::splat(5.0)),
         ..default()
     });
-    commands
-        .spawn_bundle(SpriteBundle {
+    commands.spawn_bundle(PlayerBundle {
+        health: Health(100.0),
+        speed: Speed(10.0),
+        sprite: SpriteBundle {
             texture: sprites.player.clone(),
-            transform: Transform::from_scale(Vec3::splat(SPRITESCALE))
+            transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE))
                 .with_translation(Vec3::new(0., 0., 900.)),
             ..default()
-        })
-        .insert(Player)
-        .insert(Velocity(Vec2::new(0., 0.)));
+        },
+        ..default()
+    });
 
     commands.insert_resource(NextState(GameState::InGame(InGameState::DownTime)));
 }
