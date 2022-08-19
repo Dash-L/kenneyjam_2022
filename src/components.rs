@@ -9,14 +9,6 @@ pub struct AttackTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct AttackRange(pub f32);
-
-#[derive(Component, Clone, Default)]
-pub enum AttackType {
-    #[default]
-    Melee,
-    Ranged(f32, Projectile),
-}
-
 #[derive(Component, Clone, Copy, Deref, DerefMut, Default)]
 pub struct Damage(pub f32);
 
@@ -79,7 +71,6 @@ pub struct AllyBundle {
     pub ally_type: AllyType,
     pub health: Health,
     pub damage: Damage,
-    pub attack_type: AttackType,
     pub attack_range: AttackRange,
     pub attack_timer: AttackTimer,
     pub _a: Ally,
@@ -92,7 +83,6 @@ pub struct EnemyBundle {
     pub enemy_type: EnemyType,
     pub health: Health,
     pub damage: Damage,
-    pub attack_type: AttackType,
     pub attack_range: AttackRange,
     pub attack_timer: AttackTimer,
     pub _e: Enemy,

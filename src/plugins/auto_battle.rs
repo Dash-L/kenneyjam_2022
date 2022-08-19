@@ -3,14 +3,14 @@ use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        Ally, AttackRange, AttackTimer, AttackType, Damage, Enemy, Health, Projectile,
+        Ally, AttackRange, AttackTimer, Damage, Enemy, Health, Projectile,
         ProjectileBundle, Speed, Velocity,
     },
     resources::Sprites,
     GameState, InGameState,
 };
 
-struct AttackEvent(Entity, AttackType, f32, Transform, Transform);
+struct AttackEvent(Entity, f32, Transform, Transform);
 
 pub struct AutoBattlePlugin;
 
@@ -24,7 +24,7 @@ impl Plugin for AutoBattlePlugin {
                     .with_system(auto_battle::<Ally, Enemy>)
                     .with_system(auto_battle::<Enemy, Ally>)
                     .with_system(move_projectiles)
-                    .with_system(handle_attacks)
+                    // .with_system(handle_attacks)
                     .into(),
             );
     }
@@ -144,40 +144,40 @@ fn collide_projectiles(
 ) {
 }
 
-fn handle_attacks(
-    mut commands: Commands,
-    sprites: Res<Sprites>,
-    mut attack_ev: EventReader<AttackEvent>,
-    mut entities: Query<&mut Health>,
-) {
-    for AttackEvent(entity, attack_type, damage, from_transform, to_transform) in attack_ev.iter() {
-        match attack_type {
-            AttackType::Melee => {
-                if let Ok(mut health) = entities.get_mut(*entity) {
-                    health.0 -= damage;
-                    break;
-                }
-            }
-            AttackType::Ranged(speed, projectile) => {
-                commands.spawn_bundle(ProjectileBundle {
-                    speed: Speed(*speed),
-                    velocity: Velocity(
-                        (to_transform.translation.truncate()
-                            - from_transform.translation.truncate())
-                        .normalize(),
-                    ),
-                    damage: Damage(*damage),
-                    projectile: *projectile,
-                    sprite: SpriteBundle {
-                        texture: sprites.cactus.clone(),
-                        transform: Transform::from_translation(from_transform.translation),
-                        ..default()
-                    },
-                });
-            }
-        }
-    }
-}
+// fn handle_attacks(
+//     mut commands: Commands,
+//     sprites: Res<Sprites>,
+//     mut attack_ev: EventReader<AttackEvent>,
+//     mut entities: Query<&mut Health>,
+// ) {
+//     for AttackEvent(entity, attack_type, damage, from_transform, to_transform) in attack_ev.iter() {
+//         match attack_type {
+//             AttackType::Melee => {
+//                 if let Ok(mut health) = entities.get_mut(*entity) {
+//                     health.0 -= damage;
+//                     break;
+//                 }
+//             }
+//             AttackType::Ranged(speed, projectile) => {
+//                 commands.spawn_bundle(ProjectileBundle {
+//                     speed: Speed(*speed),
+//                     velocity: Velocity(
+//                         (to_transform.translation.truncate()
+//                             - from_transform.translation.truncate())
+//                         .normalize(),
+//                     ),
+//                     damage: Damage(*damage),
+//                     projectile: *projectile,
+//                     sprite: SpriteBundle {
+//                         texture: sprites.cactus.clone(),
+//                         transform: Transform::from_translation(from_transform.translation),
+//                         ..default()
+//                     },
+//                 });
+//             }
+//         }
+//     }
+// }
 
 fn despawn_projectiles(mut commands: Commands, projectiles: Query<Entity, With<Projectile>>) {
     for entity in &projectiles {
@@ -185,31 +185,31 @@ fn despawn_projectiles(mut commands: Commands, projectiles: Query<Entity, With<P
     }
 }
 
-fn do_attack(
-    attack_ev: &mut EventWriter<AttackEvent>,
-    time: &Time,
-    attacker_transform: &Transform,
-    damage: &Damage,
-    timer: &mut AttackTimer,
-    range: &AttackRange,
-    attack_type: &AttackType,
-    target_entity: Entity,
-    target_transform: &Transform,
-) {
-    let dist = attacker_transform
-        .translation
-        .distance(target_transform.translation);
-
-    timer.tick(time.delta());
-    if dist <= **range {
-        if timer.just_finished() {
-            attack_ev.send(AttackEvent(
-                target_entity,
-                attack_type.clone(),
-                **damage,
-                *attacker_transform,
-                *target_transform,
-            ));
-        }
-    }
-}
+// fn do_attack(
+//     attack_ev: &mut EventWriter<AttackEvent>,
+//     time: &Time,
+//     attacker_transform: &Transform,
+//     damage: &Damage,
+//     timer: &mut AttackTimer,
+//     range: &AttackRange,
+//     attack_type: &AttackType,
+//     target_entity: Entity,
+//     target_transform: &Transform,
+// ) {
+//     let dist = attacker_transform
+//         .translation
+//         .distance(target_transform.translation);
+//
+//     timer.tick(time.delta());
+//     if dist <= **range {
+//         if timer.just_finished() {
+//             attack_ev.send(AttackEvent(
+//                 target_entity,
+//                 attack_type.clone(),
+//                 **damage,
+//                 *attacker_transform,
+//                 *target_transform,
+//             ));
+//         }
+//     }
+// }

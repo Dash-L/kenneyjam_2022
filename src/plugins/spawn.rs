@@ -1,7 +1,5 @@
 use crate::{
-    components::{
-        AllyBundle, AttackRange, AttackTimer, AttackType, Damage, EnemyBundle, Health, Projectile,
-    },
+    components::{AllyBundle, AttackRange, AttackTimer, Damage, EnemyBundle, Health},
     consts::{HEIGHT, SPRITE_SCALE, WIDTH},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
     AllyType, EnemyType, GameState, InGameState,
@@ -39,37 +37,97 @@ fn spawn_allies(
     if spawn_timer.just_finished() && **ally_count < 1 {
         let mut rng = rand::thread_rng();
 
+        let transform =
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
+                rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
+                rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
+                850.,
+            ));
+
         println!("Ally Spawned!");
         let ally_type = AllyType::from_u32(rng.gen_range(0..6)).unwrap();
-        commands.spawn_bundle(AllyBundle {
-            ally_type,
-            health: Health(100.0),
-            attack_range: AttackRange(1000.0),
-            attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
-            damage: Damage(10.0),
-            attack_type: AttackType::Ranged(5.0, Projectile::Ally),
-            sprite: SpriteBundle {
-                texture: match ally_type {
-                    AllyType::Alchemist => sprites.alchemist.clone(),
-                    AllyType::Archer => sprites.archer.clone(),
-                    AllyType::Cyclops => sprites.cyclops.clone(),
-                    AllyType::Dwarf => sprites.dwarf.clone(),
-                    AllyType::Knight => sprites.knight.clone(),
-                    AllyType::Wizard => sprites.wizard.clone(),
-                    AllyType::Player => sprites.player.clone(),
+
+        match ally_type {
+            AllyType::Alchemist => commands.spawn_bundle(AllyBundle {
+                ally_type,
+                health: Health(100.0),
+                damage: Damage(25.0),
+                attack_range: AttackRange(1000.),
+                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                sprite: SpriteBundle {
+                    texture: sprites.alchemist.clone(),
+                    transform,
+                    ..default()
                 },
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(
-                    Vec3::new(
-                        rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
-                        rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
-                        850.,
-                    ),
-                ),
                 ..default()
-            },
-            ..default()
-        });
-        **ally_count += 1;
+            }),
+            AllyType::Archer => commands.spawn_bundle(AllyBundle {
+                ally_type,
+                health: Health(100.0),
+                damage: Damage(25.0),
+                attack_range: AttackRange(1000.),
+                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                sprite: SpriteBundle {
+                    texture: sprites.archer.clone(),
+                    transform,
+                    ..default()
+                },
+                ..default()
+            }),
+            AllyType::Cyclops => commands.spawn_bundle(AllyBundle {
+                ally_type,
+                health: Health(100.0),
+                damage: Damage(25.0),
+                attack_range: AttackRange(1000.),
+                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                sprite: SpriteBundle {
+                    texture: sprites.cyclops.clone(),
+                    transform,
+                    ..default()
+                },
+                ..default()
+            }),
+            AllyType::Dwarf => commands.spawn_bundle(AllyBundle {
+                ally_type,
+                health: Health(100.0),
+                damage: Damage(25.0),
+                attack_range: AttackRange(1000.),
+                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                sprite: SpriteBundle {
+                    texture: sprites.dwarf.clone(),
+                    transform,
+                    ..default()
+                },
+                ..default()
+            }),
+            AllyType::Knight => commands.spawn_bundle(AllyBundle {
+                ally_type,
+                health: Health(100.0),
+                damage: Damage(25.0),
+                attack_range: AttackRange(1000.),
+                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                sprite: SpriteBundle {
+                    texture: sprites.knight.clone(),
+                    transform,
+                    ..default()
+                },
+                ..default()
+            }),
+            AllyType::Wizard => commands.spawn_bundle(AllyBundle {
+                ally_type,
+                health: Health(100.0),
+                damage: Damage(25.0),
+                attack_range: AttackRange(1000.),
+                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                sprite: SpriteBundle {
+                    texture: sprites.wizard.clone(),
+                    transform,
+                    ..default()
+                },
+                ..default()
+            }),
+            AllyType::Player => unreachable!(),
+        };
     }
 }
 
@@ -85,38 +143,109 @@ fn spawn_wave(
     if spawn_timer.just_finished() && **enemy_count <= 5 {
         let mut rng = rand::thread_rng();
         let rng_chance: f32 = rng.gen();
+        let transform =
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
+                rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
+                rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
+                850.,
+            ));
 
         if rng_chance >= 0.5 {
             println!("enemy spawned!");
             let enemy_type = EnemyType::from_u32(rng.gen_range(0..7)).unwrap();
-            commands.spawn_bundle(EnemyBundle {
-                enemy_type,
-                health: Health(100.0),
-                attack_range: AttackRange(10000.0),
-                attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
-                damage: Damage(10.0),
-                attack_type: AttackType::Ranged(5.0, Projectile::Enemy),
-                sprite: SpriteBundle {
-                    texture: match enemy_type {
-                        EnemyType::Bat => sprites.bat.clone(),
-                        EnemyType::Cactus => sprites.cactus.clone(),
-                        EnemyType::EvilWizard => sprites.evil_wizard.clone(),
-                        EnemyType::Ghost => sprites.ghost.clone(),
-                        EnemyType::Lobster => sprites.lobster.clone(),
-                        EnemyType::Rat => sprites.rat1.clone(),
-                        EnemyType::Spider => sprites.spider.clone(),
+            match enemy_type {
+                EnemyType::Bat => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.bat.clone(),
+                        transform,
+                        ..default()
                     },
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(
-                        Vec3::new(
-                            rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
-                            rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
-                            800.,
-                        ),
-                    ),
                     ..default()
-                },
-                ..default()
-            });
+                }),
+                EnemyType::Cactus => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.cactus.clone(),
+                        transform,
+                        ..default()
+                    },
+                    ..default()
+                }),
+                EnemyType::EvilWizard => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.evil_wizard.clone(),
+                        transform,
+                        ..default()
+                    },
+                    ..default()
+                }),
+                EnemyType::Ghost => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.ghost.clone(),
+                        transform,
+                        ..default()
+                    },
+                    ..default()
+                }),
+                EnemyType::Lobster => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.lobster.clone(),
+                        transform,
+                        ..default()
+                    },
+                    ..default()
+                }),
+                EnemyType::Rat => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.rat1.clone(),
+                        transform,
+                        ..default()
+                    },
+                    ..default()
+                }),
+                EnemyType::Spider => commands.spawn_bundle(EnemyBundle {
+                    enemy_type,
+                    health: Health(100.),
+                    damage: Damage(10.),
+                    attack_range: AttackRange(1000.),
+                    attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+                    sprite: SpriteBundle {
+                        texture: sprites.spider.clone(),
+                        transform,
+                        ..default()
+                    },
+                    ..default()
+                }),
+            };
             **enemy_count += 1;
         }
     }
