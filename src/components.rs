@@ -11,3 +11,6 @@ pub struct Friendly;
 
 #[derive(Component)]
 pub struct Enemy;
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Velocity(pub Vec2);
