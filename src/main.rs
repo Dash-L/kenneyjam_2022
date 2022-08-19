@@ -61,6 +61,15 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         transform: Transform::from_scale(Vec3::splat(5.0)),
         ..default()
     });
+    commands
+        .spawn_bundle(SpriteBundle {
+            texture: sprites.player.clone(),
+            transform: Transform::from_scale(Vec3::splat(SPRITESCALE))
+                .with_translation(Vec3::new(0., 0., 900.)),
+            ..default()
+        })
+        .insert(Player)
+        .insert(Velocity(Vec2::new(0., 0.)));
 
     commands.insert_resource(NextState(GameState::InGame(InGameState::DownTime)));
 }

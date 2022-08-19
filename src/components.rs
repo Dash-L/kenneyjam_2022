@@ -26,3 +26,6 @@ pub enum AttackType {
     Melee,
     Ranged(f32),
 }
+
+#[derive(Component, Deref, DerefMut)]
+pub struct Velocity(pub Vec2);
