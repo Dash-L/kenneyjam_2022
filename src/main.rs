@@ -40,6 +40,15 @@ pub enum EnemyType {
     Rat,
     Spider,
 }
+#[derive(Clone, Copy, PartialEq, Eq, FromPrimitive)]
+pub enum AllyType {
+    Alchemist,
+    Archer,
+    Cyclops,
+    Dwarf,
+    Knight,
+    Wizard,
+}
 
 fn main() {
     App::new()

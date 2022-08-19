@@ -1,8 +1,10 @@
 use crate::{
-    components::{AttackRange, AttackTimer, AttackType, Damage, EnemyBundle, Health, Projectile},
+    components::{
+        AllyBundle, AttackRange, AttackTimer, AttackType, Damage, EnemyBundle, Health, Projectile,
+    },
     consts::{HEIGHT, SPRITE_SCALE, WIDTH},
-    resources::{EnemiesCount, SpawnTimer, Sprites},
-    EnemyType, GameState, InGameState,
+    resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
+    AllyType, EnemyType, GameState, InGameState,
 };
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
@@ -12,7 +14,8 @@ pub struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(SpawnTimer(Timer::from_seconds(1.0, true)))
+        app.insert_resource(EnemySpawnTimer(Timer::from_seconds(1.0, true)))
+            .insert_resource(AllySpawnTimer(Timer::from_seconds(10.0, true)))
             .insert_resource(EnemiesCount(0))
             .add_system_set(
                 ConditionSet::new()
@@ -22,12 +25,54 @@ impl Plugin for SpawnPlugin {
             );
     }
 }
+fn spawn_allies(
+    mut commands: Commands,
+    sprites: Res<Sprites>,
+    time: Res<Time>,
+    mut spawn_timer: ResMut<AllySpawnTimer>,
+    mut ally_count: ResMut<AllyCount>,
+) {
+    spawn_timer.tick(time.delta());
+
+    if spawn_timer.just_finished() && **ally_count > 1 {
+        let mut rng = rand::thread_rng();
+
+        println!("Ally Spawned!");
+        let ally_type = AllyType::from_u32(rng.gen_range(0..6)).unwrap();
+        commands.spawn_bundle(AllyBundle {
+            health: Health(100.0),
+            attack_range: AttackRange(1.0),
+            attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
+            damage: Damage(10.0),
+            attack_type: AttackType::Ranged(5.0, Projectile::Enemy),
+            sprite: SpriteBundle {
+                texture: match ally_type {
+                    AllyType::Alchemist => sprites.alchemist.clone(),
+                    AllyType::Archer => sprites.archer.clone(),
+                    AllyType::Cyclops => sprites.cyclops.clone(),
+                    AllyType::Dwarf => sprites.dwarf.clone(),
+                    AllyType::Knight => sprites.knight.clone(),
+                    AllyType::Wizard => sprites.wizard.clone(),
+                },
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(
+                    Vec3::new(
+                        rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
+                        rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
+                        850.,
+                    ),
+                ),
+                ..default()
+            },
+            ..default()
+        });
+    }
+}
 
 fn spawn_wave(
     mut commands: Commands,
     sprites: Res<Sprites>,
     time: Res<Time>,
-    mut spawn_timer: ResMut<SpawnTimer>,
+    mut spawn_timer: ResMut<EnemySpawnTimer>,
     mut enemy_count: ResMut<EnemiesCount>,
 ) {
     spawn_timer.tick(time.delta());

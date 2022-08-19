@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
-#[derive(AssetCollection, Clone)]
+#[derive(AssetCollection)]
 pub struct Sprites {
     #[asset(path = "sprites/player.png")]
     pub player: Handle<Image>,
@@ -37,7 +37,12 @@ pub struct Sprites {
     pub background: Handle<Image>,
 }
 #[derive(Deref, DerefMut)]
-pub struct SpawnTimer(pub Timer);
+pub struct EnemySpawnTimer(pub Timer);
 
 #[derive(Deref, DerefMut)]
+pub struct AllySpawnTimer(pub Timer);
+#[derive(Deref, DerefMut)]
 pub struct EnemiesCount(pub u32);
+
+#[derive(Deref, DerefMut)]
+pub struct AllyCount(pub u32);
