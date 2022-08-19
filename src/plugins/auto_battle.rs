@@ -21,7 +21,8 @@ impl Plugin for AutoBattlePlugin {
             .add_system_set(
                 ConditionSet::new()
                     .run_in_state(GameState::InGame(InGameState::DownTime))
-                    .with_system(auto_battle)
+                    .with_system(auto_battle::<Ally, Enemy>)
+                    .with_system(auto_battle::<Enemy, Ally>)
                     .with_system(move_projectiles)
                     .with_system(handle_attacks)
                     .into(),
@@ -29,70 +30,106 @@ impl Plugin for AutoBattlePlugin {
     }
 }
 
-fn auto_battle(
-    mut attack_ev: EventWriter<AttackEvent>,
-    time: Res<Time>,
-    mut allies: Query<
-        (
-            Entity,
-            &Transform,
-            &Damage,
-            &mut AttackTimer,
-            &AttackRange,
-            &AttackType,
-        ),
-        (With<Ally>, Without<Enemy>),
-    >,
-    mut enemies: Query<
-        (
-            Entity,
-            &Transform,
-            &Damage,
-            &mut AttackTimer,
-            &AttackRange,
-            &AttackType,
-        ),
-        (With<Enemy>, Without<Ally>),
-    >,
-) {
-    // TODO: target closest instead of random
-    for (ally_entity, ally_transform, ally_damage, mut ally_timer, ally_range, ally_attack) in
-        &mut allies
-    {
-        for (
-            enemy_entity,
-            enemy_transform,
-            enemy_damage,
-            mut enemy_timer,
-            enemy_range,
-            enemy_attack,
-        ) in &mut enemies
-        {
-            do_attack(
-                &mut attack_ev,
-                &time,
-                ally_transform,
-                ally_damage,
-                &mut ally_timer,
-                ally_range,
-                ally_attack,
-                enemy_entity,
-                enemy_transform,
-            );
-            do_attack(
-                &mut attack_ev,
-                &time,
-                enemy_transform,
-                enemy_damage,
-                &mut enemy_timer,
-                enemy_range,
-                enemy_attack,
-                ally_entity,
-                ally_transform,
-            );
+fn auto_battle<A, T>(
+    attackers: Query<(Entity, &Transform, &AttackRange), (With<A>, Without<T>)>,
+    targets: Query<(Entity, &Transform), (With<T>, Without<A>)>,
+) where
+    A: Component,
+    T: Component,
+{
+    for (attacker_entity, attacker_transform, range) in &attackers {
+        let mut closest = (
+            f32::MAX,
+            Entity::from_raw(0),
+            Transform::default(),
+            Entity::from_raw(0),
+            Transform::default(),
+        );
+        for (target_entity, target_transform) in &targets {
+            let dist = attacker_transform
+                .translation
+                .truncate()
+                .distance(target_transform.translation.truncate());
+            if dist < closest.0 {
+                closest = (
+                    dist,
+                    attacker_entity,
+                    *attacker_transform,
+                    target_entity,
+                    *target_transform,
+                );
+            }
+        }
+        if closest.0 <= range.0 {
+            // spawn attack event of some kind
         }
     }
 }
+
+// fn auto_battle(
+//     mut attack_ev: EventWriter<AttackEvent>,
+//     time: Res<Time>,
+//     mut allies: Query<
+//         (
+//             Entity,
+//             &Transform,
+//             &Damage,
+//             &mut AttackTimer,
+//             &AttackRange,
+//             &AttackType,
+//         ),
+//         (With<Ally>, Without<Enemy>),
+//     >,
+//     mut enemies: Query<
+//         (
+//             Entity,
+//             &Transform,
+//             &Damage,
+//             &mut AttackTimer,
+//             &AttackRange,
+//             &AttackType,
+//         ),
+//         (With<Enemy>, Without<Ally>),
+//     >,
+// ) {
+//     // TODO: target closest instead of random
+//     for (ally_entity, ally_transform, ally_damage, mut ally_timer, ally_range, ally_attack) in
+//         &mut allies
+//     {
+//         for (
+//             enemy_entity,
+//             enemy_transform,
+//             enemy_damage,
+//             mut enemy_timer,
+//             enemy_range,
+//             enemy_attack,
+//         ) in &mut enemies
+//         {
+//             do_attack(
+//                 &mut attack_ev,
+//                 &time,
+//                 ally_transform,
+//                 ally_damage,
+//                 &mut ally_timer,
+//                 ally_range,
+//                 ally_attack,
+//                 enemy_entity,
+//                 enemy_transform,
+//             );
+//             do_attack(
+//                 &mut attack_ev,
+//                 &time,
+//                 enemy_transform,
+//                 enemy_damage,
+//                 &mut enemy_timer,
+//                 enemy_range,
+//                 enemy_attack,
+//                 ally_entity,
+//                 ally_transform,
+//             );
+//         }
+//     }
+// }
 
 fn move_projectiles(mut projectiles: Query<(&mut Transform, &Velocity, &Speed), With<Projectile>>) {
     for (mut transform, velocity, speed) in &mut projectiles {
