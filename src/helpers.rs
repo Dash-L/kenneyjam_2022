@@ -70,7 +70,7 @@ pub fn spawn_health_bars(
 }
 
 pub fn update_health_bars(
-    entities: Query<(&Health, &Children), With<HasHealthBar>>,
+    entities: Query<(&Health, &Children), (Changed<Health>, With<HasHealthBar>)>,
     mut health_bars: Query<(&mut Transform, &mut Sprite), With<MainHealthBar>>,
 ) {
     for (health, children) in &entities {
@@ -83,6 +83,13 @@ pub fn update_health_bars(
         }
     }
 }
+
+pub fn update_prev_position(mut entities: Query<(&Transform, &mut PrevPosition)>) {
+    for (transform, mut prev_position) in &mut entities {
+        prev_position.0 = transform.translation;
+    }
+}
+
 pub fn handle_collision(
     mut entities: Query<
         (Entity, &mut Transform, &Collider, &PrevPosition),
@@ -93,18 +100,21 @@ pub fn handle_collision(
         .iter_mut()
         .map(|e| Rc::new(RefCell::new(e)))
         .collect::<Vec<Rc<RefCell<_>>>>();
-    for entity in entities_arr.clone() {
+    for entity in &entities_arr {
         for other_entity in &entities_arr {
             if entity.borrow().0 != other_entity.borrow().0 {
-                while let Some(_) = collide(
-                    entity.borrow().1.translation,
-                    entity.borrow().2 .0,
-                    other_entity.borrow().1.translation,
-                    other_entity.borrow().2 .0,
-                ) {
-                    let vectorthing =
-                        (entity.borrow().3 .0 - entity.borrow().1.translation).normalize() * 0.01;
-                    entity.borrow_mut().1.translation += vectorthing;
+                let mut entity = entity.borrow_mut();
+                let other_entity = other_entity.borrow();
+                if entity.3 .0 != entity.1.translation {
+                    while let Some(_) = collide(
+                        entity.1.translation,
+                        entity.2 .0,
+                        other_entity.1.translation,
+                        other_entity.2 .0,
+                    ) {
+                        let vectorthing = (entity.3 .0 - entity.1.translation).normalize() * 0.05;
+                        entity.1.translation += vectorthing;
+                    }
                 }
             }
         }

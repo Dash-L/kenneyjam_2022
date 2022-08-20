@@ -55,32 +55,19 @@ fn move_party(
             &Speed,
             &mut AnimationTimer,
             &mut TextureAtlasSprite,
-            &mut PrevPosition,
         ),
         With<Player>,
     >,
     mut party_members: Query<
-        (
-            &mut Transform,
-            &mut AnimationTimer,
-            &mut TextureAtlasSprite,
-            &mut PrevPosition,
-        ),
+        (&mut Transform, &mut AnimationTimer, &mut TextureAtlasSprite),
         (With<InParty>, With<AllyType>, Without<Player>),
     >,
 ) {
-    let (transform, velocity, speed, animation_timer, texture_atlas_sprite, prev_position) =
-        player.single_mut();
-    for (mut transform, mut animation_timer, mut texture_atlas_sprite, mut prev_position) in
-        iter::once((
-            transform,
-            animation_timer,
-            texture_atlas_sprite,
-            prev_position,
-        ))
-        .chain(party_members.iter_mut())
+    let (transform, velocity, speed, animation_timer, texture_atlas_sprite) = player.single_mut();
+    for (mut transform, mut animation_timer, mut texture_atlas_sprite) in
+        iter::once((transform, animation_timer, texture_atlas_sprite))
+            .chain(party_members.iter_mut())
     {
-        prev_position.0 = transform.translation;
         if velocity.0 == Vec2::ZERO {
             animation_timer.pause();
         } else {
