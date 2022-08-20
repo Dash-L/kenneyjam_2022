@@ -1,5 +1,6 @@
-use bevy::{prelude::*, render::{texture::ImageSettings, render_resource::PolygonMode}};
+use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_asset_loader::prelude::*;
+use bevy_prototype_lyon::prelude::*;
 use iyes_loopless::prelude::*;
 
 mod components;
@@ -33,7 +34,6 @@ pub enum GameState {
 fn main() {
     App::new()
         .insert_resource(ImageSettings::default_nearest())
-        .insert_resource(PolygonMode::Line)
         .insert_resource(WindowDescriptor {
             title: "Kenney Jam".to_string(),
             width: WIDTH,
@@ -48,6 +48,7 @@ fn main() {
                 .with_collection::<Sprites>(),
         )
         .add_plugins(DefaultPlugins)
+        .add_plugin(ShapePlugin)
         .add_plugin(SpawnPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AutoBattlePlugin)
@@ -85,6 +86,18 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         })
         .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
         .with_children(|parent| {
+            let shape = shapes::Circle {
+                radius: 50.0,
+                ..default()
+            };
+            parent.spawn_bundle(GeometryBuilder::build_as(
+                &shape,
+                DrawMode::Stroke(StrokeMode {
+                    color: Color::PURPLE,
+                    options: StrokeOptions::default().with_line_width(5.0),
+                }),
+                Transform::default(),
+            ));
             parent.spawn_bundle(Camera2dBundle {
                 transform: Transform::from_scale(Vec2::splat(0.35).extend(1.))
                     .with_translation(Vec3::Z * 99.9),
@@ -93,75 +106,4 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         });
 
     commands.insert_resource(NextState(GameState::InGame(InGameState::DownTime)));
-}
-
-fn animate_sprites(
-    time: Res<Time>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
-    mut query: Query<(
-        &mut AnimationTimer,
-        &mut TextureAtlasSprite,
-        &Handle<TextureAtlas>,
-    )>,
-) {
-    for (mut timer, mut sprite, texture_atlas_handle) in &mut query {
-        timer.tick(time.delta());
-        if timer.paused() {
-            sprite.index = 0;
-        } else if timer.just_finished() {
-            let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
-            sprite.index = (sprite.index + 1) % (texture_atlas.textures.len());
-            if sprite.index == 0 {
-                sprite.index = 1;
-            }
-        }
-    }
-}
-
-fn spawn_health_bars(
-    mut commands: Commands,
-    entities: Query<Entity, (With<Health>, Without<HasHealthBar>)>,
-) {
-    for entity in &entities {
-        commands
-            .entity(entity)
-            .with_children(|parent| {
-                parent.spawn_bundle(SpriteBundle {
-                    sprite: Sprite {
-                        color: Color::RED,
-                        custom_size: Some(Vec2::new(HEALTH_BAR_LEN, 1.5)),
-                        ..default()
-                    },
-                    transform: Transform::from_translation(Vec3::Y * 10.0),
-                    ..default()
-                });
-                parent
-                    .spawn_bundle(SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::GREEN,
-                            custom_size: Some(Vec2::new(HEALTH_BAR_LEN, 1.5)),
-                            ..default()
-                        },
-                        transform: Transform::from_translation(Vec3::new(0.0, 10.0, 2.0)),
-                        ..default()
-                    })
-                    .insert(MainHealthBar);
-            })
-            .insert(HasHealthBar);
-    }
-}
-
-fn update_health_bars(
-    entities: Query<(&Health, &Children), With<HasHealthBar>>,
-    mut health_bars: Query<(&mut Transform, &mut Sprite), With<MainHealthBar>>,
-) {
-    for (health, children) in &entities {
-        for &child in children {
-            if let Ok((mut transform, mut sprite)) = health_bars.get_mut(child) {
-                let ratio = health.0 / health.1;
-                transform.translation.x = -HEALTH_BAR_LEN * (1.0 - ratio) / 2.0;
-                sprite.custom_size = Some(Vec2::new(HEALTH_BAR_LEN * ratio, 1.5));
-            }
-        }
-    }
 }
