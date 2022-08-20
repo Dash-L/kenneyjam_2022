@@ -95,8 +95,9 @@ pub struct EnemyBundle {
     pub sprite: SpriteSheetBundle,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct ProjectileBundle<C: Component> {
+    pub rigid_body: RigidBody,
     pub collider: Collider,
     pub velocity: Velocity,
     pub damage: Damage,

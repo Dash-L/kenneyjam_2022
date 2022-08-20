@@ -1,11 +1,10 @@
-use bevy::{prelude::*, sprite::collide_aabb::collide};
+use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile,
-        ProjectileBundle, Speed,
+        AllyType, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile, ProjectileBundle,
     },
     resources::Sprites,
     GameState,
@@ -106,7 +105,7 @@ fn handle_ally_attacks(
                         commands
                             .spawn_bundle(ProjectileBundle {
                                 velocity: Velocity {
-                                    linvel: dir * 20.0,
+                                    linvel: dir * 2000.0,
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
@@ -123,6 +122,7 @@ fn handle_ally_attacks(
                                     ..default()
                                 },
                                 collider: Collider::cuboid(4.0, 8.0),
+                                ..default()
                             })
                             .insert(Sensor);
                     }
@@ -133,7 +133,7 @@ fn handle_ally_attacks(
                                     linvel: (enemy_transform.translation.truncate()
                                         - ally_transform.translation.truncate())
                                     .normalize()
-                                        * 20.0,
+                                        * 2000.0,
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
@@ -146,6 +146,7 @@ fn handle_ally_attacks(
                                     ..default()
                                 },
                                 collider: Collider::cuboid(4.0, 4.0),
+                                ..default()
                             })
                             .insert(Sensor);
                     }
@@ -174,7 +175,7 @@ fn handle_enemy_attacks(
                                     linvel: (ally_transform.translation.truncate()
                                         - enemy_transform.translation.truncate())
                                     .normalize()
-                                        * 20.0,
+                                        * 2000.0,
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
@@ -188,6 +189,7 @@ fn handle_enemy_attacks(
                                     ..default()
                                 },
                                 collider: Collider::cuboid(4.0, 4.0),
+                                ..default()
                             })
                             .insert(Sensor);
                     }
