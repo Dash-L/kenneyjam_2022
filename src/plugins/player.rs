@@ -25,11 +25,8 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn handle_inputs(
-    mut player: Query<(&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite), With<Player>>,
-    keyboard: Res<Input<KeyCode>>,
-) {
-    let (mut velocity, mut animation_timer, mut texture_atlas_sprite) = player.single_mut();
+fn handle_inputs(mut player: Query<&mut Velocity, With<Player>>, keyboard: Res<Input<KeyCode>>) {
+    let mut velocity = player.single_mut();
     *velocity = Velocity(Vec2::ZERO);
     if keyboard.pressed(KeyCode::W) {
         velocity.y += 1.;
@@ -39,34 +36,44 @@ fn handle_inputs(
     }
     if keyboard.pressed(KeyCode::D) {
         velocity.x += 1.;
-        texture_atlas_sprite.flip_x = false;
     }
     if keyboard.pressed(KeyCode::A) {
         velocity.x -= 1.;
-        texture_atlas_sprite.flip_x = true;
     }
 
     *velocity = Velocity(velocity.normalize_or_zero());
 }
 
 fn move_party(
-    mut player: Query<(&mut Transform, &Velocity, &Speed, &mut AnimationTimer), With<Player>>,
+    mut player: Query<
+        (
+            &mut Transform,
+            &Velocity,
+            &Speed,
+            &mut AnimationTimer,
+            &mut TextureAtlasSprite,
+        ),
+        With<Player>,
+    >,
     mut party_members: Query<
-        (&mut Transform, &mut AnimationTimer),
+        (&mut Transform, &mut AnimationTimer, &mut TextureAtlasSprite),
         (With<InParty>, With<AllyType>, Without<Player>),
     >,
 ) {
-    let (player_transform, velocity, speed, player_animation_timer) = player.single_mut();
-    for (mut transform, mut animation_timer) in
-        iter::once((player_transform, player_animation_timer)).chain(party_members.iter_mut())
+    let (transform, velocity, speed, animation_timer, texture_atlas_sprite) = player.single_mut();
+    for (mut transform, mut animation_timer, mut texture_atlas_sprite) in
+        iter::once((transform, animation_timer, texture_atlas_sprite))
+            .chain(party_members.iter_mut())
     {
         if velocity.0 == Vec2::ZERO {
             animation_timer.pause();
         } else {
             animation_timer.unpause();
         }
+        texture_atlas_sprite.flip_x =
+            (texture_atlas_sprite.flip_x && velocity.x == 0.0) || velocity.x < 0.0;
         if transform.translation.x >= XEXTENT.0 && transform.translation.x <= XEXTENT.1 {
-            transform.translation.x += velocity.0.x * speed.0;
+            transform.translation.x += velocity.x * speed.0;
             if transform.translation.x < XEXTENT.0 {
                 transform.translation.x = XEXTENT.0;
             } else if transform.translation.x > XEXTENT.1 {
@@ -74,7 +81,7 @@ fn move_party(
             }
         }
         if transform.translation.y >= YEXTENT.0 && transform.translation.y <= YEXTENT.1 {
-            transform.translation.y += velocity.0.y * speed.0;
+            transform.translation.y += velocity.y * speed.0;
             if transform.translation.y < YEXTENT.0 {
                 transform.translation.y = YEXTENT.0;
             } else if transform.translation.y > YEXTENT.1 {
