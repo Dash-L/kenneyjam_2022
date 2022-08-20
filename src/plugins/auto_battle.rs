@@ -23,8 +23,8 @@ impl Plugin for AutoBattlePlugin {
                     .run_in_state(GameState::InGame)
                     .with_system(auto_battle::<AllyType, EnemyType>)
                     .with_system(auto_battle::<EnemyType, AllyType>)
-                    // .with_system(collide_projectiles::<AllyType, EnemyType>)
-                    // .with_system(collide_projectiles::<EnemyType, AllyType>)
+                    .with_system(collide_projectiles::<AllyType, EnemyType>)
+                    .with_system(collide_projectiles::<EnemyType, AllyType>)
                     .with_system(handle_ally_attacks)
                     .with_system(handle_enemy_attacks)
                     .into(),
@@ -61,30 +61,31 @@ fn auto_battle<A, T>(
     }
 }
 
-// fn collide_projectiles<A, T>(
-//     mut commands: Commands,
-//     projectiles: Query<(Entity, &Transform, &Damage, &Collider), With<Projectile<A>>>,
-//     mut targets: Query<(&Transform, &mut Health, &Collider), With<T>>,
-// ) where
-//     A: Component,
-//     T: Component,
-// {
-//     for (entity, projectile_transform, damage, projectile_collider) in &projectiles {
-//         for (target_transform, mut health, target_collider) in &mut targets {
-//             if collide(
-//                 projectile_transform.translation,
-//                 projectile_collider.0,
-//                 target_transform.translation,
-//                 target_collider.0,
-//             )
-//             .is_some()
-//             {
-//                 health.0 -= **damage;
-//                 commands.entity(entity).despawn_recursive();
-//             }
-//         }
-//     }
-// }
+fn collide_projectiles<A, T>(
+    mut commands: Commands,
+    projectiles: Query<(Entity, &Damage), With<Projectile<A>>>,
+    mut targets: Query<&mut Health, With<T>>,
+    mut collision_events: EventReader<CollisionEvent>,
+) where
+    A: Component,
+    T: Component,
+{
+    for event in collision_events.iter() {
+        if let CollisionEvent::Started(e1, e2, _) = event {
+            if let Ok((entity, damage)) = projectiles.get(*e1) {
+                if let Ok(mut health) = targets.get_mut(*e2) {
+                    health.0 -= damage.0;
+                    commands.entity(entity).despawn_recursive();
+                }
+            } else if let Ok((entity, damage)) = projectiles.get(*e2) {
+                if let Ok(mut health) = targets.get_mut(*e1) {
+                    health.0 -= damage.0;
+                    commands.entity(entity).despawn_recursive();
+                }
+            }
+        }
+    }
+}
 
 fn handle_ally_attacks(
     mut commands: Commands,
@@ -124,7 +125,8 @@ fn handle_ally_attacks(
                                 collider: Collider::cuboid(4.0, 8.0),
                                 ..default()
                             })
-                            .insert(Sensor);
+                            .insert(Sensor)
+                            .insert(ActiveEvents::COLLISION_EVENTS);
                     }
                     AllyType::Wizard => {
                         commands
@@ -148,7 +150,8 @@ fn handle_ally_attacks(
                                 collider: Collider::cuboid(4.0, 4.0),
                                 ..default()
                             })
-                            .insert(Sensor);
+                            .insert(Sensor)
+                            .insert(ActiveEvents::COLLISION_EVENTS);
                     }
                     _ => {}
                 }
@@ -191,7 +194,8 @@ fn handle_enemy_attacks(
                                 collider: Collider::cuboid(4.0, 4.0),
                                 ..default()
                             })
-                            .insert(Sensor);
+                            .insert(Sensor)
+                            .insert(ActiveEvents::COLLISION_EVENTS);
                     }
                     _ => {}
                 }
