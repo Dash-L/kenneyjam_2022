@@ -77,19 +77,9 @@ fn move_party(
             (texture_atlas_sprite.flip_x && velocity.x == 0.0) || velocity.x < 0.0;
         if transform.translation.x >= XEXTENT.0 && transform.translation.x <= XEXTENT.1 {
             transform.translation.x += velocity.x * speed.0;
-            if transform.translation.x < XEXTENT.0 {
-                transform.translation.x = XEXTENT.0;
-            } else if transform.translation.x > XEXTENT.1 {
-                transform.translation.x = XEXTENT.1;
-            }
         }
         if transform.translation.y >= YEXTENT.0 && transform.translation.y <= YEXTENT.1 {
             transform.translation.y += velocity.y * speed.0;
-            if transform.translation.y < YEXTENT.0 {
-                transform.translation.y = YEXTENT.0;
-            } else if transform.translation.y > YEXTENT.1 {
-                transform.translation.y = YEXTENT.1;
-            }
         }
     }
 }

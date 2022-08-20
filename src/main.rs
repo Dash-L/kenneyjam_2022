@@ -53,6 +53,7 @@ fn main() {
         .add_system(spawn_health_bars)
         .add_system(update_health_bars)
         .add_system_to_stage(CoreStage::PostUpdate, handle_collision)
+        .add_system_to_stage(CoreStage::PostUpdate, keep_in_map.after(handle_collision))
         .run();
 }
 

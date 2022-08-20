@@ -49,11 +49,16 @@ pub struct Sprites {
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
 }
+
+#[derive(Deref, DerefMut)]
+pub struct DraggingEntity(pub Option<Entity>);
+
 #[derive(Deref, DerefMut)]
 pub struct EnemySpawnTimer(pub Timer);
 
 #[derive(Deref, DerefMut)]
 pub struct AllySpawnTimer(pub Timer);
+
 #[derive(Deref, DerefMut)]
 pub struct EnemiesCount(pub u32);
 

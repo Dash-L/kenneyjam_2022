@@ -10,7 +10,7 @@ use crate::{
         AllyType, AnimationTimer, Collider, EnemyType, HasHealthBar, Health, MainHealthBar,
         PrevPosition,
     },
-    consts::HEALTH_BAR_LEN,
+    consts::{HEALTH_BAR_LEN, XEXTENT, YEXTENT},
 };
 
 pub fn animate_sprites(
@@ -105,6 +105,8 @@ pub fn handle_collision(
             if entity.borrow().0 != other_entity.borrow().0 {
                 let mut entity = entity.borrow_mut();
                 let other_entity = other_entity.borrow();
+                const MAX_ITERATIONS: u32 = 1000;
+                let mut i = 0;
                 if entity.3 .0 != entity.1.translation {
                     while let Some(_) = collide(
                         entity.1.translation,
@@ -112,11 +114,50 @@ pub fn handle_collision(
                         other_entity.1.translation,
                         other_entity.2 .0,
                     ) {
-                        let vectorthing = (entity.3 .0 - entity.1.translation).normalize() * 0.05;
-                        entity.1.translation += vectorthing;
+                        if i >= MAX_ITERATIONS {
+                            break;
+                        }
+                        let vector = (entity.3 .0 - entity.1.translation).normalize() * 0.05;
+                        entity.1.translation += vector;
+                        i += 1;
+                    }
+                    if let Some(collision) = collide(
+                        entity.1.translation,
+                        entity.2 .0,
+                        other_entity.1.translation,
+                        other_entity.2 .0,
+                    ) {
+                        println!(
+                            "{:?} stuck! with {:?} ({:?})",
+                            entity.0, other_entity.0, collision
+                        );
+                        const RESOLUTION: f32 = 0.5;
+                        match collision {
+                            Collision::Left => entity.1.translation += Vec3::NEG_X * RESOLUTION,
+                            Collision::Right => entity.1.translation += Vec3::X * RESOLUTION,
+                            Collision::Top => entity.1.translation += Vec3::Y * RESOLUTION,
+                            Collision::Bottom => entity.1.translation += Vec3::NEG_Y * RESOLUTION,
+                            _ => {}
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+pub fn keep_in_map(mut entities: Query<&mut Transform, Or<(With<EnemyType>, With<AllyType>)>>) {
+    for mut transform in &mut entities {
+        if transform.translation.x < XEXTENT.0 {
+            transform.translation.x = XEXTENT.0;
+        } else if transform.translation.x > XEXTENT.1 {
+            transform.translation.x = XEXTENT.1;
+        }
+
+        if transform.translation.y < YEXTENT.0 {
+            transform.translation.y = YEXTENT.0;
+        } else if transform.translation.y > YEXTENT.1 {
+            transform.translation.y = YEXTENT.1;
         }
     }
 }
