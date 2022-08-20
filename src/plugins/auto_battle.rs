@@ -23,6 +23,8 @@ impl Plugin for AutoBattlePlugin {
                     .run_in_state(GameState::InGame)
                     .with_system(auto_battle::<AllyType, EnemyType>)
                     .with_system(auto_battle::<EnemyType, AllyType>)
+                    .with_system(collide_projectiles::<AllyType, EnemyType>)
+                    .with_system(collide_projectiles::<EnemyType, AllyType>)
                     .with_system(handle_archer_attack)
                     .with_system(handle_cyclops_attack)
                     .with_system(handle_dwarf_attack)
@@ -68,6 +70,16 @@ fn auto_battle<A, T>(
             attack_events.send(AttackEvent(ty.clone(), closest.1, closest.2));
         }
     }
+}
+
+fn collide_projectiles<A, T>(
+    mut commands: Commands,
+    projectiles: Query<(Entity, &Transform), With<Projectile<A>>>,
+    mut targets: Query<(&Transform, &mut Health), With<T>>,
+) where
+    A: Component,
+    T: Component,
+{
 }
 
 fn handle_cyclops_attack(
@@ -279,6 +291,7 @@ fn handle_spider_attack(
         let ally = ally_q.get(*ally_entity);
     }
 }
+
 // fn auto_battle(
 //     mut attack_ev: EventWriter<AttackEvent>,
 //     time: Res<Time>,
