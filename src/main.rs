@@ -56,10 +56,9 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, sprites: Res<Sprites>) {
-    commands.spawn_bundle(Camera2dBundle::default());
     commands.spawn_bundle(SpriteBundle {
         texture: sprites.background.clone(),
-        transform: Transform::from_scale(Vec3::splat(5.0)).with_translation(Vec3::Z * 10.0),
+        transform: Transform::from_scale(Vec3::splat(5.0)),
         ..default()
     });
     commands
@@ -81,7 +80,14 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
             },
             ..default()
         })
-        .insert(AnimationTimer(Timer::from_seconds(0.115, true)));
+        .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
+        .with_children(|parent| {
+            parent.spawn_bundle(Camera2dBundle {
+                transform: Transform::from_scale(Vec2::splat(0.25).extend(1.))
+                    .with_translation(Vec3::Z * 99.9),
+                ..default()
+            });
+        });
 
     commands.insert_resource(NextState(GameState::InGame(InGameState::DownTime)));
 }
