@@ -93,7 +93,7 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
                 Transform::default(),
             ));
             parent.spawn_bundle(Camera2dBundle {
-                transform: Transform::from_scale(Vec2::splat(0.35).extend(1.))
+                transform: Transform::from_scale(Vec2::splat(0.25).extend(1.))
                     .with_translation(Vec3::Z * 997.9),
                 ..default()
             });
