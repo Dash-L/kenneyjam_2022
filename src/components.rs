@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::prelude::*;
 use num_derive::FromPrimitive;
 
@@ -15,17 +17,8 @@ pub struct Damage(pub f32);
 #[derive(Component, Default)]
 pub struct Player;
 
-#[derive(Component, Default)]
-pub struct Ally;
-
-#[derive(Component, Default)]
-pub struct Enemy;
-
-#[derive(Component, Clone, Copy)]
-pub enum Projectile {
-    Ally,
-    Enemy,
-}
+#[derive(Component, Clone, Copy, Default)]
+pub struct Projectile<C: Component>(pub PhantomData<C>);
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct Velocity(pub Vec2);
@@ -73,7 +66,6 @@ pub struct AllyBundle {
     pub damage: Damage,
     pub attack_range: AttackRange,
     pub attack_timer: AttackTimer,
-    pub _a: Ally,
     #[bundle]
     pub sprite: SpriteBundle,
 }
@@ -85,17 +77,16 @@ pub struct EnemyBundle {
     pub damage: Damage,
     pub attack_range: AttackRange,
     pub attack_timer: AttackTimer,
-    pub _e: Enemy,
     #[bundle]
     pub sprite: SpriteBundle,
 }
 
 #[derive(Bundle)]
-pub struct ProjectileBundle {
+pub struct ProjectileBundle<C: Component> {
     pub speed: Speed,
     pub velocity: Velocity,
     pub damage: Damage,
-    pub projectile: Projectile,
+    pub projectile: Projectile<C>,
     #[bundle]
     pub sprite: SpriteBundle,
 }
