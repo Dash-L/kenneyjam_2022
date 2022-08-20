@@ -214,7 +214,7 @@ fn spawn_wave(
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
-                        texture_atlas: sprites.rat1.clone(),
+                        texture_atlas: sprites.rat.clone(),
                         transform,
                         ..default()
                     },

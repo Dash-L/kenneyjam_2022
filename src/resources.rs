@@ -35,13 +35,17 @@ pub struct Sprites {
     pub bat: Handle<TextureAtlas>,
     #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
     #[asset(path = "sprites/rat1-sheet.png")]
-    pub rat1: Handle<TextureAtlas>,
+    pub rat: Handle<TextureAtlas>,
     #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
     #[asset(path = "sprites/wizard-sheet.png")]
     pub wizard: Handle<TextureAtlas>,
     #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
     #[asset(path = "sprites/spider-sheet.png")]
     pub spider: Handle<TextureAtlas>,
+    #[asset(path = "sprites/fireball.png")]
+    pub fireball: Handle<Image>,
+    #[asset(path = "sprites/arrow.png")]
+    pub arrow: Handle<Image>,
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
 }

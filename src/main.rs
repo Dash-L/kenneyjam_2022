@@ -12,7 +12,6 @@ mod helpers;
 use helpers::*;
 
 mod plugins;
-use num_derive::FromPrimitive;
 use plugins::*;
 
 mod resources;
