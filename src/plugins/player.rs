@@ -27,10 +27,10 @@ impl Plugin for PlayerPlugin {
 }
 
 fn handle_inputs(
-    mut player: Query<(&mut Velocity, &mut AnimationTimer), With<Player>>,
+    mut player: Query<(&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite), With<Player>>,
     keyboard: Res<Input<KeyCode>>,
 ) {
-    let (mut velocity, mut animation_timer) = player.single_mut();
+    let (mut velocity, mut animation_timer, mut texture_atlas_sprite) = player.single_mut();
     *velocity = Velocity(Vec2::ZERO);
     if keyboard.pressed(KeyCode::W) {
         velocity.y += 1.;
@@ -40,9 +40,11 @@ fn handle_inputs(
     }
     if keyboard.pressed(KeyCode::D) {
         velocity.x += 1.;
+        texture_atlas_sprite.flip_x = false;
     }
     if keyboard.pressed(KeyCode::A) {
         velocity.x -= 1.;
+        texture_atlas_sprite.flip_x = true;
     }
     if velocity.0 == Vec2::ZERO {
         animation_timer.pause();
