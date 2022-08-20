@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
-    components::{Player, Speed, Velocity},
+    components::{AnimationTimer, Player, Speed, Velocity},
     GameState, InGameState,
 };
 pub struct PlayerPlugin;
@@ -26,8 +26,11 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn handle_inputs(mut player: Query<&mut Velocity, With<Player>>, keyboard: Res<Input<KeyCode>>) {
-    let mut velocity = player.single_mut();
+fn handle_inputs(
+    mut player: Query<(&mut Velocity, &mut AnimationTimer), With<Player>>,
+    keyboard: Res<Input<KeyCode>>,
+) {
+    let (mut velocity, mut animation_timer) = player.single_mut();
     *velocity = Velocity(Vec2::ZERO);
     if keyboard.pressed(KeyCode::W) {
         velocity.y += 1.;
@@ -40,6 +43,11 @@ fn handle_inputs(mut player: Query<&mut Velocity, With<Player>>, keyboard: Res<I
     }
     if keyboard.pressed(KeyCode::A) {
         velocity.x -= 1.;
+    }
+    if velocity.0 == Vec2::ZERO {
+        animation_timer.pause();
+    } else {
+        animation_timer.unpause();
     }
 
     *velocity = Velocity(velocity.normalize_or_zero());

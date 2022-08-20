@@ -6,6 +6,8 @@ pub struct Health(pub f32);
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct AttackTimer(pub Timer);
+#[derive(Component, Deref, DerefMut, Default)]
+pub struct AnimationTimer(pub Timer);
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct AttackRange(pub f32);
@@ -37,7 +39,6 @@ pub struct Speed(pub f32);
 pub enum EnemyType {
     #[default]
     Bat,
-    Cactus,
     EvilWizard,
     Ghost,
     Lobster,
@@ -75,7 +76,7 @@ pub struct AllyBundle {
     pub attack_timer: AttackTimer,
     pub _a: Ally,
     #[bundle]
-    pub sprite: SpriteBundle,
+    pub sprite: SpriteSheetBundle,
 }
 
 #[derive(Bundle, Default)]
@@ -87,7 +88,7 @@ pub struct EnemyBundle {
     pub attack_timer: AttackTimer,
     pub _e: Enemy,
     #[bundle]
-    pub sprite: SpriteBundle,
+    pub sprite: SpriteSheetBundle,
 }
 
 #[derive(Bundle)]
