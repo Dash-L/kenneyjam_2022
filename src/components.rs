@@ -82,6 +82,7 @@ pub struct AllyBundle {
     pub attack_timer: AttackTimer,
     #[bundle]
     pub sprite: SpriteSheetBundle,
+    pub prev_position: PrevPosition,
 }
 
 #[derive(Bundle, Default)]
@@ -93,6 +94,7 @@ pub struct EnemyBundle {
     pub attack_timer: AttackTimer,
     #[bundle]
     pub sprite: SpriteSheetBundle,
+    pub prev_position: PrevPosition,
 }
 
 #[derive(Bundle)]
@@ -106,3 +108,5 @@ pub struct ProjectileBundle<C: Component> {
 }
 #[derive(Component)]
 pub struct Collider(pub Vec2);
+#[derive(Default, Component)]
+pub struct PrevPosition(pub Vec3);

@@ -1,7 +1,15 @@
-use bevy::prelude::*;
+use std::{cell::RefCell, rc::Rc};
+
+use bevy::{
+    prelude::*,
+    sprite::collide_aabb::{collide, Collision},
+};
 
 use crate::{
-    components::{AnimationTimer, HasHealthBar, Health, MainHealthBar},
+    components::{
+        AllyType, AnimationTimer, Collider, EnemyType, HasHealthBar, Health, MainHealthBar,
+        PrevPosition,
+    },
     consts::HEALTH_BAR_LEN,
 };
 
@@ -71,6 +79,33 @@ pub fn update_health_bars(
                 let ratio = health.0 / health.1;
                 transform.translation.x = -HEALTH_BAR_LEN * (1.0 - ratio) / 2.0;
                 sprite.custom_size = Some(Vec2::new(HEALTH_BAR_LEN * ratio, 1.5));
+            }
+        }
+    }
+}
+pub fn handle_collision(
+    mut entities: Query<
+        (Entity, &mut Transform, &Collider, &PrevPosition),
+        Or<(With<AllyType>, With<EnemyType>)>,
+    >,
+) {
+    let entities_arr = entities
+        .iter_mut()
+        .map(|e| Rc::new(RefCell::new(e)))
+        .collect::<Vec<Rc<RefCell<_>>>>();
+    for entity in entities_arr.clone() {
+        for other_entity in &entities_arr {
+            if entity.borrow().0 != other_entity.borrow().0 {
+                while let Some(_) = collide(
+                    entity.borrow().1.translation,
+                    entity.borrow().2 .0,
+                    other_entity.borrow().1.translation,
+                    other_entity.borrow().2 .0,
+                ) {
+                    let vectorthing =
+                        (entity.borrow().3 .0 - entity.borrow().1.translation).normalize() * 0.01;
+                    entity.borrow_mut().1.translation += vectorthing;
+                }
             }
         }
     }

@@ -5,8 +5,11 @@ use bevy_prototype_lyon::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
-    components::{AllyType, AnimationTimer, InParty, PartyRadius, Player, Speed, Velocity},
+    components::{
+        AllyType, AnimationTimer, InParty, PartyRadius, Player, PrevPosition, Speed, Velocity,
+    },
     consts::{SPRITE_SCALE, XEXTENT, YEXTENT},
+    resources::AllyCount,
     GameState,
 };
 pub struct PlayerPlugin;
@@ -52,19 +55,32 @@ fn move_party(
             &Speed,
             &mut AnimationTimer,
             &mut TextureAtlasSprite,
+            &mut PrevPosition,
         ),
         With<Player>,
     >,
     mut party_members: Query<
-        (&mut Transform, &mut AnimationTimer, &mut TextureAtlasSprite),
+        (
+            &mut Transform,
+            &mut AnimationTimer,
+            &mut TextureAtlasSprite,
+            &mut PrevPosition,
+        ),
         (With<InParty>, With<AllyType>, Without<Player>),
     >,
 ) {
-    let (transform, velocity, speed, animation_timer, texture_atlas_sprite) = player.single_mut();
-    for (mut transform, mut animation_timer, mut texture_atlas_sprite) in
-        iter::once((transform, animation_timer, texture_atlas_sprite))
-            .chain(party_members.iter_mut())
+    let (transform, velocity, speed, animation_timer, texture_atlas_sprite, prev_position) =
+        player.single_mut();
+    for (mut transform, mut animation_timer, mut texture_atlas_sprite, mut prev_position) in
+        iter::once((
+            transform,
+            animation_timer,
+            texture_atlas_sprite,
+            prev_position,
+        ))
+        .chain(party_members.iter_mut())
     {
+        prev_position.0 = transform.translation;
         if velocity.0 == Vec2::ZERO {
             animation_timer.pause();
         } else {
@@ -106,7 +122,8 @@ fn update_circle(player: Query<&PartyRadius, With<Player>>, mut path: Query<&mut
 fn add_to_party(
     mut commands: Commands,
     player: Query<(&Transform, &PartyRadius), With<Player>>,
-    entities: Query<(Entity, &Transform), Without<InParty>>,
+    entities: Query<(Entity, &Transform), (Without<InParty>, Without<Player>, With<AllyType>)>,
+    mut ally_count: ResMut<AllyCount>,
 ) {
     let (player_transform, party_radius) = player.single();
     for (entity, transform) in &entities {
@@ -117,6 +134,7 @@ fn add_to_party(
             < party_radius.0 * SPRITE_SCALE
         {
             commands.entity(entity).insert(InParty);
+            ally_count.0 -= 1;
         }
     }
 }

@@ -124,21 +124,25 @@ fn handle_ally_attacks(
                             .insert(Collider(Vec2::new(8., 16.) * 1.5));
                     }
                     AllyType::Wizard => {
-                        commands.spawn_bundle(ProjectileBundle {
-                            speed: Speed(20.0),
-                            velocity: Velocity(
-                                (enemy_transform.translation.truncate()
-                                    - ally_transform.translation.truncate())
-                                .normalize(),
-                            ),
-                            damage: Damage(damage.0),
-                            projectile: Projectile::<AllyType>::default(),
-                            sprite: SpriteBundle {
-                                texture: sprites.fireball.clone(),
-                                transform: Transform::from_translation(ally_transform.translation),
-                                ..default()
-                            },
-                        });
+                        commands
+                            .spawn_bundle(ProjectileBundle {
+                                speed: Speed(20.0),
+                                velocity: Velocity(
+                                    (enemy_transform.translation.truncate()
+                                        - ally_transform.translation.truncate())
+                                    .normalize(),
+                                ),
+                                damage: Damage(damage.0),
+                                projectile: Projectile::<AllyType>::default(),
+                                sprite: SpriteBundle {
+                                    texture: sprites.fireball.clone(),
+                                    transform: Transform::from_translation(
+                                        ally_transform.translation,
+                                    ),
+                                    ..default()
+                                },
+                            })
+                            .insert(Collider(Vec2::new(8., 16.) * 1.5));
                     }
                     _ => {}
                 }
@@ -187,71 +191,6 @@ fn handle_enemy_attacks(
     }
 }
 
-// fn auto_battle(
-//     mut attack_ev: EventWriter<AttackEvent>,
-//     time: Res<Time>,
-//     mut allies: Query<
-//         (
-//             Entity,
-//             &Transform,
-//             &Damage,
-//             &mut AttackTimer,
-//             &AttackRange,
-//             &AttackType,
-//         ),
-//         (With<Ally>, Without<Enemy>),
-//     >,
-//     mut enemies: Query<
-//         (
-//             Entity,
-//             &Transform,
-//             &Damage,
-//             &mut AttackTimer,
-//             &AttackRange,
-//             &AttackType,
-//         ),
-//         (With<Enemy>, Without<Ally>),
-//     >,
-// ) {
-//     // TODO: target closest instead of random
-//     for (ally_entity, ally_transform, ally_damage, mut ally_timer, ally_range, ally_attack) in
-//         &mut allies
-//     {
-//         for (
-//             enemy_entity,
-//             enemy_transform,
-//             enemy_damage,
-//             mut enemy_timer,
-//             enemy_range,
-//             enemy_attack,
-//         ) in &mut enemies
-//         {
-//             do_attack(
-//                 &mut attack_ev,
-//                 &time,
-//                 ally_transform,
-//                 ally_damage,
-//                 &mut ally_timer,
-//                 ally_range,
-//                 ally_attack,
-//                 enemy_entity,
-//                 enemy_transform,
-//             );
-//             do_attack(
-//                 &mut attack_ev,
-//                 &time,
-//                 enemy_transform,
-//                 enemy_damage,
-//                 &mut enemy_timer,
-//                 enemy_range,
-//                 enemy_attack,
-//                 ally_entity,
-//                 ally_transform,
-//             );
-//         }
-//     }
-// }
-
 fn move_projectiles(
     mut projectiles: Query<
         (&mut Transform, &Velocity, &Speed),
@@ -262,67 +201,3 @@ fn move_projectiles(
         transform.translation += (velocity.0 * speed.0).extend(0.0);
     }
 }
-
-// fn handle_attacks(
-//     mut commands: Commands,
-//     sprites: Res<Sprites>,
-//     mut attack_ev: EventReader<AttackEvent>,
-//     mut entities: Query<&mut Health>,
-// ) {
-//     for AttackEvent(entity, attack_type, damage, from_transform, to_transform) in attack_ev.iter() {
-//         match attack_type {
-//             AttackType::Melee => {
-//                 if let Ok(mut health) = entities.get_mut(*entity) {
-//                     health.0 -= damage;
-//                     break;
-//                 }
-//             }
-//             AttackType::Ranged(speed, projectile) => {
-//                 commands.spawn_bundle(ProjectileBundle {
-//                     speed: Speed(*speed),
-//                     velocity: Velocity(
-//                         (to_transform.translation.truncate()
-//                             - from_transform.translation.truncate())
-//                         .normalize(),
-//                     ),
-//                     damage: Damage(*damage),
-//                     projectile: *projectile,
-//                     sprite: SpriteBundle {
-//                         texture: sprites.cactus.clone(),
-//                         transform: Transform::from_translation(from_transform.translation),
-//                         ..default()
-//                     },
-//                 });
-//             }
-//         }
-//     }
-// }
-
-// fn do_attack(
-//     attack_ev: &mut EventWriter<AttackEvent>,
-//     time: &Time,
-//     attacker_transform: &Transform,
-//     damage: &Damage,
-//     timer: &mut AttackTimer,
-//     range: &AttackRange,
-//     attack_type: &AttackType,
-//     target_entity: Entity,
-//     target_transform: &Transform,
-// ) {
-//     let dist = attacker_transform
-//         .translation
-//         .distance(target_transform.translation);
-//
-//     timer.tick(time.delta());
-//     if dist <= **range {
-//         if timer.just_finished() {
-//             attack_ev.send(AttackEvent(
-//                 target_entity,
-//                 attack_type.clone(),
-//                 **damage,
-//                 *attacker_transform,
-//                 *target_transform,
-//             ));
-//         }
-//     }
-// }

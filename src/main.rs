@@ -50,6 +50,7 @@ fn main() {
         .add_system(animate_sprites)
         .add_system(spawn_health_bars)
         .add_system(update_health_bars)
+        .add_system_to_stage(CoreStage::PostUpdate, handle_collision)
         .run();
 }
 
