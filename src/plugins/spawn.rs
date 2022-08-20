@@ -1,6 +1,6 @@
 use crate::{
     components::{AllyBundle, AttackRange, AttackTimer, Damage, EnemyBundle, Health},
-    consts::{HEIGHT, SPRITE_SCALE, WIDTH},
+    consts::{HEIGHT, SPRITE_SCALE, WIDTH, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
     AllyType, EnemyType, GameState, InGameState,
 };
@@ -39,8 +39,8 @@ fn spawn_allies(
 
         let transform =
             Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
-                rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
-                rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
+                rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
+                rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
                 850.,
             ));
 
@@ -146,8 +146,8 @@ fn spawn_wave(
         let rng_chance: f32 = rng.gen();
         let transform =
             Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
-                rng.gen_range((-WIDTH as i32 / 2)..(WIDTH as i32 / 2)) as f32,
-                rng.gen_range((-HEIGHT as i32 / 2)..(HEIGHT as i32 / 2)) as f32,
+                rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
+                rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
                 850.,
             ));
 
