@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health,
+        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Collider, Damage, EnemyBundle, Health,
     },
     consts::{HEIGHT, SPRITE_SCALE, WIDTH, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
@@ -132,7 +132,8 @@ fn spawn_allies(
             }),
             AllyType::Player => unreachable!(),
         }
-        .insert(AnimationTimer(timer));
+        .insert(AnimationTimer(timer))
+        .insert(Collider(Vec2::splat(16. * SPRITE_SCALE)));
         **ally_count += 1;
     }
 }
@@ -155,6 +156,8 @@ fn spawn_wave(
                 rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
                 1.0,
             ));
+        let mut timer = Timer::from_seconds(0.115, true);
+        timer.pause();
 
         if rng_chance >= 0.5 {
             println!("enemy spawned!");
@@ -238,7 +241,9 @@ fn spawn_wave(
                     },
                     ..default()
                 }),
-            };
+            }
+            .insert(AnimationTimer(timer))
+            .insert(Collider(Vec2::splat(16. * SPRITE_SCALE)));
             **enemy_count += 1;
         }
     }

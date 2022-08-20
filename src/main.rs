@@ -80,10 +80,9 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
             ..default()
         })
         .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
+        .insert(Collider(Vec2::splat(16.) * SPRITE_SCALE))
         .with_children(|parent| {
-            let shape = shapes::Circle {
-                ..default()
-            };
+            let shape = shapes::Circle { ..default() };
             parent.spawn_bundle(GeometryBuilder::build_as(
                 &shape,
                 DrawMode::Stroke(StrokeMode {

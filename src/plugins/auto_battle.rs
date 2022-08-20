@@ -1,9 +1,9 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile,
+        AllyType, AttackRange, AttackTimer, Collider, Damage, EnemyType, Health, Projectile,
         ProjectileBundle, Speed, Velocity,
     },
     resources::Sprites,
@@ -74,12 +74,27 @@ fn auto_battle<A, T>(
 
 fn collide_projectiles<A, T>(
     mut commands: Commands,
-    projectiles: Query<(Entity, &Transform), With<Projectile<A>>>,
-    mut targets: Query<(&Transform, &mut Health), With<T>>,
+    projectiles: Query<(Entity, &Transform, &Damage, &Collider), With<Projectile<A>>>,
+    mut targets: Query<(&Transform, &mut Health, &Collider), With<T>>,
 ) where
     A: Component,
     T: Component,
 {
+    for (entity, projectile_transform, damage, projectile_collider) in &projectiles {
+        for (target_transform, mut health, target_collider) in &mut targets {
+            if collide(
+                projectile_transform.translation,
+                projectile_collider.0,
+                target_transform.translation,
+                target_collider.0,
+            )
+            .is_some()
+            {
+                health.0 -= **damage;
+                commands.entity(entity).despawn_recursive();
+            }
+        }
+    }
 }
 
 fn handle_cyclops_attack(
@@ -111,19 +126,21 @@ fn handle_archer_attack(
         let dir =
             (other_transform.translation.truncate() - transform.translation.truncate()).normalize();
 
-        commands.spawn_bundle(ProjectileBundle {
-            speed: Speed(20.0),
-            velocity: Velocity(dir),
-            damage: Damage(damage.0),
-            projectile: Projectile::<AllyType>::default(),
-            sprite: SpriteBundle {
-                texture: sprites.arrow.clone(),
-                transform: Transform::from_translation(transform.translation)
-                    .with_rotation(Quat::from_rotation_z(Vec2::Y.angle_between(dir)))
-                    .with_scale(Vec3::splat(1.5)),
-                ..default()
-            },
-        });
+        commands
+            .spawn_bundle(ProjectileBundle {
+                speed: Speed(20.0),
+                velocity: Velocity(dir),
+                damage: Damage(damage.0),
+                projectile: Projectile::<AllyType>::default(),
+                sprite: SpriteBundle {
+                    texture: sprites.arrow.clone(),
+                    transform: Transform::from_translation(transform.translation)
+                        .with_rotation(Quat::from_rotation_z(Vec2::Y.angle_between(dir)))
+                        .with_scale(Vec3::splat(1.5)),
+                    ..default()
+                },
+            })
+            .insert(Collider(Vec2::new(8., 16.) * 1.5));
     }
 }
 
@@ -223,20 +240,23 @@ fn handle_evil_wizard_attack(
         let (transform, damage) = evil_wizard_q.get(*evil_wizard_entity).unwrap();
         let other_transform = ally_q.get(*ally_entity).unwrap();
 
-        commands.spawn_bundle(ProjectileBundle {
-            speed: Speed(20.0),
-            velocity: Velocity(
-                (other_transform.translation.truncate() - transform.translation.truncate())
-                    .normalize(),
-            ),
-            damage: Damage(damage.0),
-            projectile: Projectile::<EnemyType>::default(),
-            sprite: SpriteBundle {
-                texture: sprites.fireball.clone(),
-                transform: Transform::from_translation(transform.translation),
-                ..default()
-            },
-        });
+        commands
+            .spawn_bundle(ProjectileBundle {
+                speed: Speed(20.0),
+                velocity: Velocity(
+                    (other_transform.translation.truncate() - transform.translation.truncate())
+                        .normalize(),
+                ),
+                damage: Damage(damage.0),
+                projectile: Projectile::<EnemyType>::default(),
+                sprite: SpriteBundle {
+                    texture: sprites.fireball.clone(),
+                    transform: Transform::from_translation(transform.translation)
+                        .with_scale(Vec3::splat(1.5)),
+                    ..default()
+                },
+            })
+            .insert(Collider(Vec2::new(8., 8.) * 1.5));
     }
 }
 

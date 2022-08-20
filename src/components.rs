@@ -104,3 +104,5 @@ pub struct ProjectileBundle<C: Component> {
     #[bundle]
     pub sprite: SpriteBundle,
 }
+#[derive(Component)]
+pub struct Collider(pub Vec2);
