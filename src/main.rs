@@ -63,7 +63,7 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
     });
     commands
         .spawn_bundle(PlayerBundle {
-            speed: Speed(5.0),
+            speed: Speed(2.0),
             ally: AllyBundle {
                 ally_type: AllyType::Player,
                 attack_range: AttackRange(5.0),

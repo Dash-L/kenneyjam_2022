@@ -3,6 +3,7 @@ use iyes_loopless::prelude::*;
 
 use crate::{
     components::{AnimationTimer, Player, Speed, Velocity},
+    consts::{XEXTENT, YEXTENT},
     GameState, InGameState,
 };
 pub struct PlayerPlugin;
@@ -57,5 +58,20 @@ fn handle_inputs(
 
 fn move_player(mut player: Query<(&mut Transform, &Velocity, &Speed), With<Player>>) {
     let (mut transform, velocity, speed) = player.single_mut();
-    transform.translation += (velocity.0 * speed.0).extend(0.);
+    if transform.translation.x >= XEXTENT.0 && transform.translation.x <= XEXTENT.1 {
+        transform.translation.x += velocity.0.x * speed.0;
+        if transform.translation.x < XEXTENT.0 {
+            transform.translation.x = XEXTENT.0;
+        } else if transform.translation.x > XEXTENT.1 {
+            transform.translation.x = XEXTENT.1;
+        }
+    }
+    if transform.translation.y >= YEXTENT.0 && transform.translation.y <= YEXTENT.1 {
+        transform.translation.y += velocity.0.y * speed.0;
+        if transform.translation.y < YEXTENT.0 {
+            transform.translation.y = YEXTENT.0;
+        } else if transform.translation.y > YEXTENT.1 {
+            transform.translation.y = YEXTENT.1;
+        }
+    }
 }
