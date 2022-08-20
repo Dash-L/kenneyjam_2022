@@ -3,36 +3,45 @@ use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection)]
 pub struct Sprites {
-    #[asset(path = "sprites/player.png")]
-    pub player: Handle<Image>,
-    #[asset(path = "sprites/archer.png")]
-    pub archer: Handle<Image>,
-    #[asset(path = "sprites/alchemist.png")]
-    pub alchemist: Handle<Image>,
-    #[asset(path = "sprites/cyclops.png")]
-    pub cyclops: Handle<Image>,
-    #[asset(path = "sprites/lobster.png")]
-    pub lobster: Handle<Image>,
-    #[asset(path = "sprites/dwarf.png")]
-    pub dwarf: Handle<Image>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 3, rows = 1))]
+    #[asset(path = "sprites/player-sheet.png")]
+    pub player: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/archer-sheet.png")]
+    pub archer: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/alchemist-sheet.png")]
+    pub alchemist: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 3, rows = 1))]
+    #[asset(path = "sprites/cyclops-sheet.png")]
+    pub cyclops: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 3, rows = 1))]
+    #[asset(path = "sprites/lobster-sheet.png")]
+    pub lobster: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 3, rows = 1))]
+    #[asset(path = "sprites/dwarf-sheet.png")]
+    pub dwarf: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 1, rows = 1))]
     #[asset(path = "sprites/ghost.png")]
-    pub ghost: Handle<Image>,
-    #[asset(path = "sprites/knight.png")]
-    pub knight: Handle<Image>,
-    #[asset(path = "sprites/evil_wizard.png")]
-    pub evil_wizard: Handle<Image>,
-    #[asset(path = "sprites/bat.png")]
-    pub bat: Handle<Image>,
-    #[asset(path = "sprites/cactus.png")]
-    pub cactus: Handle<Image>,
-    #[asset(path = "sprites/rat1.png")]
-    pub rat1: Handle<Image>,
-    #[asset(path = "sprites/rat2.png")]
-    pub rat2: Handle<Image>,
-    #[asset(path = "sprites/wizard.png")]
-    pub wizard: Handle<Image>,
-    #[asset(path = "sprites/spider.png")]
-    pub spider: Handle<Image>,
+    pub ghost: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 3, rows = 1))]
+    #[asset(path = "sprites/knight-sheet.png")]
+    pub knight: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/evil_wizard-sheet.png")]
+    pub evil_wizard: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/bat-sheet.png")]
+    pub bat: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/rat1-sheet.png")]
+    pub rat1: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/wizard-sheet.png")]
+    pub wizard: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 2, rows = 1))]
+    #[asset(path = "sprites/spider-sheet.png")]
+    pub spider: Handle<TextureAtlas>,
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
 }
