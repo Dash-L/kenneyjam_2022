@@ -2,12 +2,11 @@ use std::iter;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
-    components::{
-        AllyType, AnimationTimer, InParty, PartyRadius, Player, PrevPosition, Speed, Velocity,
-    },
+    components::{AllyType, AnimationTimer, EnemyType, InParty, PartyRadius, Player},
     consts::{SPRITE_SCALE, XEXTENT, YEXTENT},
     resources::AllyCount,
     GameState,
@@ -20,66 +19,49 @@ impl Plugin for PlayerPlugin {
             ConditionSet::new()
                 .run_in_state(GameState::InGame)
                 .with_system(handle_inputs)
-                .with_system(move_party)
                 .with_system(update_circle)
                 .with_system(add_to_party)
+                .with_system(move_enemies_towards_player)
                 .into(),
         );
     }
 }
 
-fn handle_inputs(mut player: Query<&mut Velocity, With<Player>>, keyboard: Res<Input<KeyCode>>) {
-    let mut velocity = player.single_mut();
-    *velocity = Velocity(Vec2::ZERO);
-    if keyboard.pressed(KeyCode::W) {
-        velocity.y += 1.;
-    }
-    if keyboard.pressed(KeyCode::S) {
-        velocity.y -= 1.;
-    }
-    if keyboard.pressed(KeyCode::D) {
-        velocity.x += 1.;
-    }
-    if keyboard.pressed(KeyCode::A) {
-        velocity.x -= 1.;
-    }
-
-    *velocity = Velocity(velocity.normalize_or_zero());
-}
-
-fn move_party(
-    mut player: Query<
-        (
-            &mut Transform,
-            &Velocity,
-            &Speed,
-            &mut AnimationTimer,
-            &mut TextureAtlasSprite,
-        ),
-        With<Player>,
-    >,
+fn handle_inputs(
+    mut player: Query<(&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite), With<Player>>,
     mut party_members: Query<
-        (&mut Transform, &mut AnimationTimer, &mut TextureAtlasSprite),
-        (With<InParty>, With<AllyType>, Without<Player>),
+        (&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite),
+        (With<InParty>, Without<Player>),
     >,
+    keyboard: Res<Input<KeyCode>>,
 ) {
-    let (transform, velocity, speed, animation_timer, texture_atlas_sprite) = player.single_mut();
-    for (mut transform, mut animation_timer, mut texture_atlas_sprite) in
-        iter::once((transform, animation_timer, texture_atlas_sprite))
+    let (velocity, animation_timer, texture_atlas_sprite) = player.single_mut();
+    for (mut velocity, mut animation_timer, mut texture_atlas_sprite) in
+        iter::once((velocity, animation_timer, texture_atlas_sprite))
             .chain(party_members.iter_mut())
     {
-        if velocity.0 == Vec2::ZERO {
+        velocity.linvel = Vec2::ZERO;
+        if keyboard.pressed(KeyCode::W) {
+            velocity.linvel.y += 1.;
+        }
+        if keyboard.pressed(KeyCode::S) {
+            velocity.linvel.y -= 1.;
+        }
+        if keyboard.pressed(KeyCode::D) {
+            velocity.linvel.x += 1.;
+            texture_atlas_sprite.flip_x = false;
+        }
+        if keyboard.pressed(KeyCode::A) {
+            velocity.linvel.x -= 1.;
+            texture_atlas_sprite.flip_x = true;
+        }
+
+        velocity.linvel = velocity.linvel.normalize_or_zero() * 200.0;
+
+        if velocity.linvel == Vec2::ZERO {
             animation_timer.pause();
         } else {
             animation_timer.unpause();
-        }
-        texture_atlas_sprite.flip_x =
-            (texture_atlas_sprite.flip_x && velocity.x == 0.0) || velocity.x < 0.0;
-        if transform.translation.x >= XEXTENT.0 && transform.translation.x <= XEXTENT.1 {
-            transform.translation.x += velocity.x * speed.0;
-        }
-        if transform.translation.y >= YEXTENT.0 && transform.translation.y <= YEXTENT.1 {
-            transform.translation.y += velocity.y * speed.0;
         }
     }
 }
@@ -113,5 +95,18 @@ fn add_to_party(
             commands.entity(entity).insert(InParty);
             ally_count.0 -= 1;
         }
+    }
+}
+
+fn move_enemies_towards_player(
+    player: Query<&Transform, With<Player>>,
+    mut enemies: Query<(&Transform, &mut Velocity), With<EnemyType>>,
+) {
+    let player_transform = player.single();
+    for (enemy_transform, mut velocity) in &mut enemies {
+        velocity.linvel = (player_transform.translation.truncate()
+            - enemy_transform.translation.truncate())
+        .normalize()
+            * 100.0;
     }
 }

@@ -1,6 +1,7 @@
 use bevy::{prelude::*, render::texture::ImageSettings};
 use bevy_asset_loader::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 mod components;
@@ -35,6 +36,10 @@ fn main() {
             resizable: false,
             ..default()
         })
+        .insert_resource(RapierConfiguration {
+            gravity: Vec2::ZERO,
+            ..default()
+        })
         .add_loopless_state(GameState::Load)
         .add_loading_state(
             LoadingState::new(GameState::Load)
@@ -43,29 +48,72 @@ fn main() {
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(ShapePlugin)
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(SpawnPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AutoBattlePlugin)
         .add_plugin(DragAndDropPlugin)
         .add_enter_system(GameState::Setup, setup)
-        .add_system_to_stage(CoreStage::PreUpdate, update_prev_position)
         .add_system(animate_sprites)
         .add_system(spawn_health_bars)
         .add_system(update_health_bars)
-        .add_system_to_stage(CoreStage::PostUpdate, handle_collision)
-        .add_system_to_stage(CoreStage::PostUpdate, keep_in_map.after(handle_collision))
         .run();
 }
 
 fn setup(mut commands: Commands, sprites: Res<Sprites>) {
+    // Background
     commands.spawn_bundle(SpriteBundle {
         texture: sprites.background.clone(),
         transform: Transform::from_scale(Vec3::splat(5.0)),
         ..default()
     });
+
+    // Wall colliders
+    commands
+        .spawn_bundle(TransformBundle::from_transform(
+            Transform::from_translation(Vec3::new(
+                XEXTENT.1 + 25.0,
+                0.5 * (YEXTENT.0 + YEXTENT.1),
+                0.0,
+            )),
+        ))
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(10.0, 0.5 * (YEXTENT.1 - YEXTENT.0)));
+    commands
+        .spawn_bundle(TransformBundle::from_transform(
+            Transform::from_translation(Vec3::new(
+                XEXTENT.0 - 25.0,
+                0.5 * (YEXTENT.0 + YEXTENT.1),
+                0.0,
+            )),
+        ))
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(10.0, 0.5 * (YEXTENT.1 - YEXTENT.0)));
+    commands
+        .spawn_bundle(TransformBundle::from_transform(
+            Transform::from_translation(Vec3::new(
+                0.5 * (XEXTENT.0 + XEXTENT.1),
+                YEXTENT.1 + 30.0,
+                0.0,
+            )),
+        ))
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(0.5 * (XEXTENT.1 - XEXTENT.0), 10.0));
+    commands
+        .spawn_bundle(TransformBundle::from_transform(
+            Transform::from_translation(Vec3::new(
+                0.5 * (XEXTENT.0 + XEXTENT.1),
+                YEXTENT.0 - 25.0,
+                0.0,
+            )),
+        ))
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(0.5 * (XEXTENT.1 - XEXTENT.0), 10.0));
+
+    // Player
     commands
         .spawn_bundle(PlayerBundle {
-            speed: Speed(2.0),
             party_radius: PartyRadius(20.0),
             ally: AllyBundle {
                 ally_type: AllyType::Player,
@@ -84,7 +132,8 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
             ..default()
         })
         .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
-        .insert(Collider(Vec2::splat(16.) * SPRITE_SCALE))
+        .insert(Collider::cuboid(8.0, 8.0))
+        .insert(LockedAxes::ROTATION_LOCKED)
         .with_children(|parent| {
             let shape = shapes::Circle { ..default() };
             parent.spawn_bundle(GeometryBuilder::build_as(

@@ -1,3 +1,4 @@
+use bevy_rapier2d::prelude::*;
 use std::marker::PhantomData;
 
 use bevy::prelude::*;
@@ -35,9 +36,6 @@ pub struct Player;
 pub struct Projectile<C: Component>(pub PhantomData<C>);
 
 #[derive(Component, Deref, DerefMut, Default)]
-pub struct Velocity(pub Vec2);
-
-#[derive(Component, Deref, DerefMut, Default)]
 pub struct Speed(pub f32);
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, FromPrimitive, Default)]
@@ -65,8 +63,6 @@ pub enum AllyType {
 
 #[derive(Bundle, Default)]
 pub struct PlayerBundle {
-    pub velocity: Velocity,
-    pub speed: Speed,
     pub party_radius: PartyRadius,
     pub _p: Player,
     #[bundle]
@@ -75,6 +71,8 @@ pub struct PlayerBundle {
 
 #[derive(Bundle, Default)]
 pub struct AllyBundle {
+    pub rigid_body: RigidBody,
+    pub velocity: Velocity,
     pub ally_type: AllyType,
     pub health: Health,
     pub damage: Damage,
@@ -82,11 +80,12 @@ pub struct AllyBundle {
     pub attack_timer: AttackTimer,
     #[bundle]
     pub sprite: SpriteSheetBundle,
-    pub prev_position: PrevPosition,
 }
 
 #[derive(Bundle, Default)]
 pub struct EnemyBundle {
+    pub rigid_body: RigidBody,
+    pub velocity: Velocity,
     pub enemy_type: EnemyType,
     pub health: Health,
     pub damage: Damage,
@@ -94,19 +93,14 @@ pub struct EnemyBundle {
     pub attack_timer: AttackTimer,
     #[bundle]
     pub sprite: SpriteSheetBundle,
-    pub prev_position: PrevPosition,
 }
 
 #[derive(Bundle)]
 pub struct ProjectileBundle<C: Component> {
-    pub speed: Speed,
+    pub collider: Collider,
     pub velocity: Velocity,
     pub damage: Damage,
     pub projectile: Projectile<C>,
     #[bundle]
     pub sprite: SpriteBundle,
 }
-#[derive(Component)]
-pub struct Collider(pub Vec2);
-#[derive(Default, Component)]
-pub struct PrevPosition(pub Vec3);

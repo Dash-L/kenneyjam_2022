@@ -1,10 +1,11 @@
 use bevy::{prelude::*, sprite::collide_aabb::collide};
+use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AttackRange, AttackTimer, Collider, Damage, EnemyType, Health, Projectile,
-        ProjectileBundle, Speed, Velocity,
+        AllyType, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile,
+        ProjectileBundle, Speed,
     },
     resources::Sprites,
     GameState,
@@ -23,11 +24,10 @@ impl Plugin for AutoBattlePlugin {
                     .run_in_state(GameState::InGame)
                     .with_system(auto_battle::<AllyType, EnemyType>)
                     .with_system(auto_battle::<EnemyType, AllyType>)
-                    .with_system(collide_projectiles::<AllyType, EnemyType>)
-                    .with_system(collide_projectiles::<EnemyType, AllyType>)
+                    // .with_system(collide_projectiles::<AllyType, EnemyType>)
+                    // .with_system(collide_projectiles::<EnemyType, AllyType>)
                     .with_system(handle_ally_attacks)
                     .with_system(handle_enemy_attacks)
-                    .with_system(move_projectiles)
                     .into(),
             );
     }
@@ -62,30 +62,30 @@ fn auto_battle<A, T>(
     }
 }
 
-fn collide_projectiles<A, T>(
-    mut commands: Commands,
-    projectiles: Query<(Entity, &Transform, &Damage, &Collider), With<Projectile<A>>>,
-    mut targets: Query<(&Transform, &mut Health, &Collider), With<T>>,
-) where
-    A: Component,
-    T: Component,
-{
-    for (entity, projectile_transform, damage, projectile_collider) in &projectiles {
-        for (target_transform, mut health, target_collider) in &mut targets {
-            if collide(
-                projectile_transform.translation,
-                projectile_collider.0,
-                target_transform.translation,
-                target_collider.0,
-            )
-            .is_some()
-            {
-                health.0 -= **damage;
-                commands.entity(entity).despawn_recursive();
-            }
-        }
-    }
-}
+// fn collide_projectiles<A, T>(
+//     mut commands: Commands,
+//     projectiles: Query<(Entity, &Transform, &Damage, &Collider), With<Projectile<A>>>,
+//     mut targets: Query<(&Transform, &mut Health, &Collider), With<T>>,
+// ) where
+//     A: Component,
+//     T: Component,
+// {
+//     for (entity, projectile_transform, damage, projectile_collider) in &projectiles {
+//         for (target_transform, mut health, target_collider) in &mut targets {
+//             if collide(
+//                 projectile_transform.translation,
+//                 projectile_collider.0,
+//                 target_transform.translation,
+//                 target_collider.0,
+//             )
+//             .is_some()
+//             {
+//                 health.0 -= **damage;
+//                 commands.entity(entity).despawn_recursive();
+//             }
+//         }
+//     }
+// }
 
 fn handle_ally_attacks(
     mut commands: Commands,
@@ -105,8 +105,10 @@ fn handle_ally_attacks(
 
                         commands
                             .spawn_bundle(ProjectileBundle {
-                                speed: Speed(20.0),
-                                velocity: Velocity(dir),
+                                velocity: Velocity {
+                                    linvel: dir * 20.0,
+                                    ..default()
+                                },
                                 damage: Damage(damage.0),
                                 projectile: Projectile::<AllyType>::default(),
                                 sprite: SpriteBundle {
@@ -120,18 +122,20 @@ fn handle_ally_attacks(
                                     .with_scale(Vec3::splat(1.5)),
                                     ..default()
                                 },
+                                collider: Collider::cuboid(4.0, 8.0),
                             })
-                            .insert(Collider(Vec2::new(8., 16.) * 1.5));
+                            .insert(Sensor);
                     }
                     AllyType::Wizard => {
                         commands
                             .spawn_bundle(ProjectileBundle {
-                                speed: Speed(20.0),
-                                velocity: Velocity(
-                                    (enemy_transform.translation.truncate()
+                                velocity: Velocity {
+                                    linvel: (enemy_transform.translation.truncate()
                                         - ally_transform.translation.truncate())
-                                    .normalize(),
-                                ),
+                                    .normalize()
+                                        * 20.0,
+                                    ..default()
+                                },
                                 damage: Damage(damage.0),
                                 projectile: Projectile::<AllyType>::default(),
                                 sprite: SpriteBundle {
@@ -141,8 +145,9 @@ fn handle_ally_attacks(
                                     ),
                                     ..default()
                                 },
+                                collider: Collider::cuboid(4.0, 4.0),
                             })
-                            .insert(Collider(Vec2::new(8., 16.) * 1.5));
+                            .insert(Sensor);
                     }
                     _ => {}
                 }
@@ -165,12 +170,13 @@ fn handle_enemy_attacks(
                     EnemyType::EvilWizard => {
                         commands
                             .spawn_bundle(ProjectileBundle {
-                                speed: Speed(20.0),
-                                velocity: Velocity(
-                                    (ally_transform.translation.truncate()
+                                velocity: Velocity {
+                                    linvel: (ally_transform.translation.truncate()
                                         - enemy_transform.translation.truncate())
-                                    .normalize(),
-                                ),
+                                    .normalize()
+                                        * 20.0,
+                                    ..default()
+                                },
                                 damage: Damage(damage.0),
                                 projectile: Projectile::<EnemyType>::default(),
                                 sprite: SpriteBundle {
@@ -181,23 +187,13 @@ fn handle_enemy_attacks(
                                     .with_scale(Vec3::splat(1.5)),
                                     ..default()
                                 },
+                                collider: Collider::cuboid(4.0, 4.0),
                             })
-                            .insert(Collider(Vec2::new(8., 8.) * 1.5));
+                            .insert(Sensor);
                     }
                     _ => {}
                 }
             }
         }
-    }
-}
-
-fn move_projectiles(
-    mut projectiles: Query<
-        (&mut Transform, &Velocity, &Speed),
-        Or<(With<Projectile<AllyType>>, With<Projectile<EnemyType>>)>,
-    >,
-) {
-    for (mut transform, velocity, speed) in &mut projectiles {
-        transform.translation += (velocity.0 * speed.0).extend(0.0);
     }
 }

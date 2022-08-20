@@ -1,12 +1,13 @@
 use crate::{
     components::{
-        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Collider, Damage, EnemyBundle, Health,
+        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health,
     },
     consts::{HEIGHT, SPRITE_SCALE, WIDTH, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
     AllyType, EnemyType, GameState,
 };
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 use num_traits::FromPrimitive;
 use rand::prelude::*;
@@ -133,7 +134,8 @@ fn spawn_allies(
             AllyType::Player => unreachable!(),
         }
         .insert(AnimationTimer(timer))
-        .insert(Collider(Vec2::splat(16. * SPRITE_SCALE)));
+        .insert(Collider::cuboid(8.0, 8.0))
+        .insert(LockedAxes::ROTATION_LOCKED);
         **ally_count += 1;
     }
 }
@@ -243,7 +245,8 @@ fn spawn_wave(
                 }),
             }
             .insert(AnimationTimer(timer))
-            .insert(Collider(Vec2::splat(16. * SPRITE_SCALE)));
+            .insert(Collider::cuboid(8.0, 8.0))
+            .insert(LockedAxes::ROTATION_LOCKED);
             **enemy_count += 1;
         }
     }

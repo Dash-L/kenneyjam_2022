@@ -1,9 +1,7 @@
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
-use crate::{
-    components::{Collider, InParty},
-    resources::DraggingEntity,
-};
+use crate::{components::InParty, resources::DraggingEntity};
 
 pub struct DragAndDropPlugin;
 
