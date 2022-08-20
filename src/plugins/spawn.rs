@@ -50,7 +50,7 @@ fn spawn_allies(
         match ally_type {
             AllyType::Alchemist => commands.spawn_bundle(AllyBundle {
                 ally_type,
-                health: Health(100.0),
+                health: Health(100.0, 100.0),
                 damage: Damage(25.0),
                 attack_range: AttackRange(1000.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -63,7 +63,7 @@ fn spawn_allies(
             }),
             AllyType::Archer => commands.spawn_bundle(AllyBundle {
                 ally_type,
-                health: Health(100.0),
+                health: Health(100.0, 100.0),
                 damage: Damage(25.0),
                 attack_range: AttackRange(1000.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -76,7 +76,7 @@ fn spawn_allies(
             }),
             AllyType::Cyclops => commands.spawn_bundle(AllyBundle {
                 ally_type,
-                health: Health(100.0),
+                health: Health(100.0, 100.0),
                 damage: Damage(25.0),
                 attack_range: AttackRange(1000.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -89,7 +89,7 @@ fn spawn_allies(
             }),
             AllyType::Dwarf => commands.spawn_bundle(AllyBundle {
                 ally_type,
-                health: Health(100.0),
+                health: Health(100.0, 100.0),
                 damage: Damage(25.0),
                 attack_range: AttackRange(1000.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -102,7 +102,7 @@ fn spawn_allies(
             }),
             AllyType::Knight => commands.spawn_bundle(AllyBundle {
                 ally_type,
-                health: Health(100.0),
+                health: Health(100.0, 100.0),
                 damage: Damage(25.0),
                 attack_range: AttackRange(1000.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -115,7 +115,7 @@ fn spawn_allies(
             }),
             AllyType::Wizard => commands.spawn_bundle(AllyBundle {
                 ally_type,
-                health: Health(100.0),
+                health: Health(100.0, 100.0),
                 damage: Damage(25.0),
                 attack_range: AttackRange(1000.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -157,8 +157,8 @@ fn spawn_wave(
             match enemy_type {
                 EnemyType::Bat => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
-                    health: Health(100.),
-                    damage: Damage(10.),
+                    health: Health(100.0, 100.0),
+                    damage: Damage(10.0),
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
@@ -170,7 +170,7 @@ fn spawn_wave(
                 }),
                 EnemyType::EvilWizard => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
-                    health: Health(100.),
+                    health: Health(100.0, 100.0),
                     damage: Damage(10.),
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -183,7 +183,7 @@ fn spawn_wave(
                 }),
                 EnemyType::Ghost => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
-                    health: Health(100.),
+                    health: Health(100.0, 100.0),
                     damage: Damage(10.),
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -196,7 +196,7 @@ fn spawn_wave(
                 }),
                 EnemyType::Lobster => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
-                    health: Health(100.),
+                    health: Health(100.0, 100.0),
                     damage: Damage(10.),
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -209,7 +209,7 @@ fn spawn_wave(
                 }),
                 EnemyType::Rat => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
-                    health: Health(100.),
+                    health: Health(100.0, 100.0),
                     damage: Damage(10.),
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
@@ -222,7 +222,7 @@ fn spawn_wave(
                 }),
                 EnemyType::Spider => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
-                    health: Health(100.),
+                    health: Health(100.0, 100.0),
                     damage: Damage(10.),
                     attack_range: AttackRange(1000.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),

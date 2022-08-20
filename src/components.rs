@@ -3,8 +3,14 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use num_derive::FromPrimitive;
 
-#[derive(Component, Deref, DerefMut, Default)]
-pub struct Health(pub f32);
+#[derive(Component, Default)]
+pub struct Health(pub f32, pub f32);
+
+#[derive(Component)]
+pub struct HasHealthBar;
+
+#[derive(Component)]
+pub struct MainHealthBar;
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct AttackTimer(pub Timer);
