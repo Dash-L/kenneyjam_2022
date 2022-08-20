@@ -1,8 +1,10 @@
 use crate::{
-    components::{AllyBundle, AttackRange, AttackTimer, Damage, EnemyBundle, Health},
+    components::{
+        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health,
+    },
     consts::{HEIGHT, SPRITE_SCALE, WIDTH, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
-    AllyType, EnemyType, GameState, InGameState,
+    AllyType, EnemyType, GameState,
 };
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
@@ -18,7 +20,7 @@ impl Plugin for SpawnPlugin {
             .insert_resource(AllyCount(0))
             .add_system_set(
                 ConditionSet::new()
-                    .run_in_state(GameState::InGame(InGameState::DownTime))
+                    .run_in_state(GameState::InGame)
                     .with_system(spawn_wave)
                     .with_system(spawn_allies)
                     .into(),
@@ -41,8 +43,10 @@ fn spawn_allies(
             Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
                 rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
                 rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
-                850.,
+                1.0,
             ));
+        let mut timer = Timer::from_seconds(0.115, true);
+        timer.pause();
 
         println!("Ally Spawned!");
         let ally_type = AllyType::from_u32(rng.gen_range(0..6)).unwrap();
@@ -127,7 +131,8 @@ fn spawn_allies(
                 ..default()
             }),
             AllyType::Player => unreachable!(),
-        };
+        }
+        .insert(AnimationTimer(timer));
         **ally_count += 1;
     }
 }
@@ -148,7 +153,7 @@ fn spawn_wave(
             Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
                 rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
                 rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
-                850.,
+                1.0,
             ));
 
         if rng_chance >= 0.5 {

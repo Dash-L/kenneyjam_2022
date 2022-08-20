@@ -12,6 +12,12 @@ pub struct HasHealthBar;
 #[derive(Component)]
 pub struct MainHealthBar;
 
+#[derive(Component)]
+pub struct InParty;
+
+#[derive(Component, Default)]
+pub struct PartyRadius(pub f32);
+
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct AttackTimer(pub Timer);
 #[derive(Component, Deref, DerefMut, Default)]
@@ -61,6 +67,7 @@ pub enum AllyType {
 pub struct PlayerBundle {
     pub velocity: Velocity,
     pub speed: Speed,
+    pub party_radius: PartyRadius,
     pub _p: Player,
     #[bundle]
     pub ally: AllyBundle,

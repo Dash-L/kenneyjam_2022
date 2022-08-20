@@ -19,16 +19,10 @@ mod resources;
 use resources::*;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub enum InGameState {
-    DownTime,
-    Wave,
-}
-
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum GameState {
     Load,
     Setup,
-    InGame(InGameState),
+    InGame,
 }
 
 fn main() {
@@ -68,6 +62,7 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
     commands
         .spawn_bundle(PlayerBundle {
             speed: Speed(2.0),
+            party_radius: PartyRadius(20.0),
             ally: AllyBundle {
                 ally_type: AllyType::Player,
                 attack_range: AttackRange(5.0),
@@ -77,7 +72,7 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.player.clone(),
                     transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE))
-                        .with_translation(Vec3::new(0., 0., 900.)),
+                        .with_translation(Vec3::new(0., 0., 2.)),
                     ..default()
                 },
                 ..default()
@@ -87,23 +82,22 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
         .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
         .with_children(|parent| {
             let shape = shapes::Circle {
-                radius: 50.0,
                 ..default()
             };
             parent.spawn_bundle(GeometryBuilder::build_as(
                 &shape,
                 DrawMode::Stroke(StrokeMode {
                     color: Color::PURPLE,
-                    options: StrokeOptions::default().with_line_width(5.0),
+                    options: StrokeOptions::default().with_line_width(1.0),
                 }),
                 Transform::default(),
             ));
             parent.spawn_bundle(Camera2dBundle {
                 transform: Transform::from_scale(Vec2::splat(0.35).extend(1.))
-                    .with_translation(Vec3::Z * 99.9),
+                    .with_translation(Vec3::Z * 997.9),
                 ..default()
             });
         });
 
-    commands.insert_resource(NextState(GameState::InGame(InGameState::DownTime)));
+    commands.insert_resource(NextState(GameState::InGame));
 }

@@ -7,7 +7,7 @@ use crate::{
         ProjectileBundle, Speed, Velocity,
     },
     resources::Sprites,
-    GameState, InGameState,
+    GameState,
 };
 
 struct AttackEvent<C>(C, Entity, Entity);
@@ -18,10 +18,9 @@ impl Plugin for AutoBattlePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AttackEvent<AllyType>>()
             .add_event::<AttackEvent<EnemyType>>()
-            .add_exit_system(GameState::InGame(InGameState::Wave), despawn_projectiles)
             .add_system_set(
                 ConditionSet::new()
-                    .run_in_state(GameState::InGame(InGameState::DownTime))
+                    .run_in_state(GameState::InGame)
                     .with_system(auto_battle::<AllyType, EnemyType>)
                     .with_system(auto_battle::<EnemyType, AllyType>)
                     .with_system(handle_archer_attack)
@@ -390,15 +389,6 @@ fn move_projectiles(
 //         }
 //     }
 // }
-
-fn despawn_projectiles(
-    mut commands: Commands,
-    projectiles: Query<Entity, Or<(With<Projectile<AllyType>>, With<Projectile<EnemyType>>)>>,
-) {
-    for entity in &projectiles {
-        commands.entity(entity).despawn();
-    }
-}
 
 // fn do_attack(
 //     attack_ev: &mut EventWriter<AttackEvent>,

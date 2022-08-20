@@ -42,7 +42,7 @@ pub fn spawn_health_bars(
                         custom_size: Some(Vec2::new(HEALTH_BAR_LEN, 1.5)),
                         ..default()
                     },
-                    transform: Transform::from_translation(Vec3::Y * 10.0),
+                    transform: Transform::from_translation(Vec3::new(0.0, 10.0, 5.0)),
                     ..default()
                 });
                 parent
@@ -52,7 +52,7 @@ pub fn spawn_health_bars(
                             custom_size: Some(Vec2::new(HEALTH_BAR_LEN, 1.5)),
                             ..default()
                         },
-                        transform: Transform::from_translation(Vec3::new(0.0, 10.0, 2.0)),
+                        transform: Transform::from_translation(Vec3::new(0.0, 10.0, 10.0)),
                         ..default()
                     })
                     .insert(MainHealthBar);
