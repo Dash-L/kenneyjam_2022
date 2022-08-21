@@ -149,15 +149,12 @@ pub fn show_indicators(
             .distance(transform.translation.truncate());
 
         if dist < 250.0 && indicator_entity.is_some() {
-            println!("visible with existing");
             commands
                 .entity(indicator_entity.0.unwrap())
                 .despawn_recursive();
             indicator_entity.0 = None;
         } else if dist >= 250.0 {
-            println!("not visible");
             if indicator_entity.is_none() {
-                println!("no existing");
                 indicator_entity.0 = Some(
                     commands
                         .spawn_bundle(SpriteBundle {
@@ -178,7 +175,6 @@ pub fn show_indicators(
                 );
             } else {
                 if let Ok(mut transform) = indicators.get_mut(indicator_entity.unwrap()) {
-                    println!("existing");
                     *transform = indicator_transform;
                 }
             }
