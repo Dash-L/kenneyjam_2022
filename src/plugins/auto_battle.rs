@@ -4,8 +4,10 @@ use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile, ProjectileBundle,
+        AllyType, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyType,
+        Health, Projectile, ProjectileBundle,
     },
+    consts::PROJECTILE_SPEED,
     resources::Sprites,
     GameState,
 };
@@ -63,24 +65,29 @@ fn auto_battle<A, T>(
 
 fn collide_projectiles<A, T>(
     mut commands: Commands,
-    projectiles: Query<(Entity, &Damage), With<Projectile<A>>>,
+    projectiles: Query<&Damage, With<Projectile<A>>>,
     mut targets: Query<&mut Health, With<T>>,
     mut collision_events: EventReader<CollisionEvent>,
 ) where
     A: Component,
     T: Component,
 {
+    let mut already_processed = Vec::new();
     for event in collision_events.iter() {
         if let CollisionEvent::Started(e1, e2, _) = event {
-            if let Ok((entity, damage)) = projectiles.get(*e1) {
-                if let Ok(mut health) = targets.get_mut(*e2) {
-                    health.0 -= damage.0;
-                    commands.entity(entity).despawn_recursive();
-                }
-            } else if let Ok((entity, damage)) = projectiles.get(*e2) {
-                if let Ok(mut health) = targets.get_mut(*e1) {
-                    health.0 -= damage.0;
-                    commands.entity(entity).despawn_recursive();
+            if !already_processed.contains(e1) && !already_processed.contains(e2) {
+                if let Ok(damage) = projectiles.get(*e1) {
+                    if let Ok(mut health) = targets.get_mut(*e2) {
+                        already_processed.push(*e1);
+                        health.0 -= damage.0;
+                        commands.entity(*e1).despawn_recursive();
+                    }
+                } else if let Ok(damage) = projectiles.get(*e2) {
+                    if let Ok(mut health) = targets.get_mut(*e1) {
+                        already_processed.push(*e2);
+                        health.0 -= damage.0;
+                        commands.entity(*e2).despawn_recursive();
+                    }
                 }
             }
         }
@@ -106,7 +113,7 @@ fn handle_ally_attacks(
                         commands
                             .spawn_bundle(ProjectileBundle {
                                 velocity: Velocity {
-                                    linvel: dir * 2000.0,
+                                    linvel: dir * PROJECTILE_SPEED,
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
@@ -129,13 +136,15 @@ fn handle_ally_attacks(
                             .insert(ActiveEvents::COLLISION_EVENTS);
                     }
                     AllyType::Wizard => {
+                        let mut timer = Timer::from_seconds(0.02, false);
+                        timer.pause();
                         commands
                             .spawn_bundle(ProjectileBundle {
                                 velocity: Velocity {
                                     linvel: (enemy_transform.translation.truncate()
                                         - ally_transform.translation.truncate())
                                     .normalize()
-                                        * 2000.0,
+                                        * PROJECTILE_SPEED,
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
@@ -172,13 +181,15 @@ fn handle_enemy_attacks(
             if let Ok(ally_transform) = allies.get(*ally_entity) {
                 match enemy_type {
                     EnemyType::EvilWizard => {
+                        let mut timer = Timer::from_seconds(0.5, false);
+                        timer.pause();
                         commands
                             .spawn_bundle(ProjectileBundle {
                                 velocity: Velocity {
                                     linvel: (ally_transform.translation.truncate()
                                         - enemy_transform.translation.truncate())
                                     .normalize()
-                                        * 2000.0,
+                                        * PROJECTILE_SPEED,
                                     ..default()
                                 },
                                 damage: Damage(damage.0),

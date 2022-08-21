@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{AnimationTimer, HasHealthBar, Health, MainHealthBar},
+    components::{AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar},
     consts::HEALTH_BAR_LEN,
+    resources::EnemiesCount,
 };
 
 pub fn animate_sprites(
@@ -71,6 +72,21 @@ pub fn update_health_bars(
                 let ratio = health.0 / health.1;
                 transform.translation.x = -HEALTH_BAR_LEN * (1.0 - ratio) / 2.0;
                 sprite.custom_size = Some(Vec2::new(HEALTH_BAR_LEN * ratio, 1.5));
+            }
+        }
+    }
+}
+
+pub fn despawn_zero_health(
+    mut commands: Commands,
+    mut enemy_count: ResMut<EnemiesCount>,
+    entities: Query<(Entity, &Health, Option<&EnemyType>)>,
+) {
+    for (entity, health, maybe_enemy) in &entities {
+        if health.0 <= 0.0 {
+            commands.entity(entity).despawn_recursive();
+            if maybe_enemy.is_some() {
+                **enemy_count -= 1;
             }
         }
     }
