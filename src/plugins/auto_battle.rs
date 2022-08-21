@@ -96,7 +96,10 @@ fn collide_projectiles<A, T>(
                             if let Some(mut vel) = vel {
                                 vel.linvel = Vec2::ZERO;
                             }
-                            audio.play_with_settings(sound.0.clone(), PlaybackSettings::ONCE.with_volume(0.3));
+                            audio.play_with_settings(
+                                sound.0.clone(),
+                                PlaybackSettings::ONCE.with_volume(0.3),
+                            );
                             if animation_timer.is_none() {
                                 commands
                                     .entity(*e1)
@@ -115,7 +118,10 @@ fn collide_projectiles<A, T>(
                             if let Some(mut vel) = vel {
                                 vel.linvel = Vec2::ZERO;
                             }
-                            audio.play_with_settings(sound.0.clone(), PlaybackSettings::ONCE.with_volume(0.3));
+                            audio.play_with_settings(
+                                sound.0.clone(),
+                                PlaybackSettings::ONCE.with_volume(0.3),
+                            );
                             if animation_timer.is_none() {
                                 commands
                                     .entity(*e2)
@@ -282,7 +288,7 @@ fn handle_enemy_attacks(
                             .insert(ActiveEvents::COLLISION_EVENTS)
                             .insert(Projectile::<EnemyType>(true, PhantomData))
                             .insert(Damage(damage.0))
-                            .insert(Sound(sounds.enemy_hit.clone()));
+                            .insert(Sound(sounds.enemy_attack.clone()));
                     }
                 }
             }

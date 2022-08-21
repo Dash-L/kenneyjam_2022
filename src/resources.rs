@@ -64,7 +64,7 @@ pub struct Sounds {
     #[asset(path = "sounds/fireballsound.wav")]
     pub fireball: Handle<AudioSource>,
     #[asset(path = "sounds/hitsound.wav")]
-    pub player_hit: Handle<AudioSource>,
+    pub enemy_attack: Handle<AudioSource>,
     #[asset(path = "sounds/slashsound.wav")]
     pub slash: Handle<AudioSource>,
     #[asset(path = "sounds/menumusic.wav")]

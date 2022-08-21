@@ -140,6 +140,6 @@ fn move_enemies_towards_closest_ally(
         }
         velocity.linvel =
             (closest.1.translation.truncate() - enemy_transform.translation.truncate()).normalize()
-                * 100.0;
+                * 80.0;
     }
 }
