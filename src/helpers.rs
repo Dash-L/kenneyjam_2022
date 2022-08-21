@@ -1,12 +1,56 @@
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
         AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar, Player,
         Projectile,
     },
-    consts::HEALTH_BAR_LEN,
+    consts::{BUTTON_CLICKED, BUTTON_DEFAULT, BUTTON_HOVERED, HEALTH_BAR_LEN},
+    GameState,
 };
+
+pub fn despawn_with<C: Component>(mut commands: Commands, q: Query<Entity, With<C>>) {
+    for e in &q {
+        commands.entity(e).despawn_recursive();
+    }
+}
+
+pub fn button_pressed<B: Component>(
+    q: Query<&Interaction, (Changed<Interaction>, With<Button>, With<B>)>,
+) -> bool {
+    for interaction in &q {
+        if *interaction == Interaction::Clicked {
+            return true;
+        }
+    }
+
+    false
+}
+
+pub fn update_buttons(
+    mut q: Query<(&Interaction, &mut UiColor), (Changed<Interaction>, With<Button>)>,
+) {
+    for (interaction, mut color) in &mut q {
+        match interaction {
+            Interaction::Clicked => {
+                *color = BUTTON_CLICKED;
+            }
+            Interaction::Hovered => {
+                *color = BUTTON_HOVERED;
+            }
+            Interaction::None => {
+                *color = BUTTON_DEFAULT;
+            }
+        }
+    }
+}
+
+pub fn go_to_state(state: GameState) -> impl Fn(Commands) {
+    move |mut commands: Commands| {
+        commands.insert_resource(NextState(state));
+    }
+}
 
 pub fn animate_sprites(
     time: Res<Time>,

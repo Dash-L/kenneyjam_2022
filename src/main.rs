@@ -23,6 +23,7 @@ use resources::*;
 pub enum GameState {
     Load,
     Setup,
+    MainMenu,
     InGame,
 }
 
@@ -45,12 +46,14 @@ fn main() {
             LoadingState::new(GameState::Load)
                 .continue_to_state(GameState::Setup)
                 .with_collection::<Sprites>()
-                .with_collection::<Sounds>(),
+                .with_collection::<Sounds>()
+                .with_collection::<Fonts>(),
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(ShapePlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(MainMenuPlugin)
         .add_plugin(SpawnPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AutoBattlePlugin)
@@ -64,10 +67,7 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    sprites: Res<Sprites>,
-) {
+fn setup(mut commands: Commands, sprites: Res<Sprites>) {
     // Background
     commands.spawn_bundle(SpriteBundle {
         texture: sprites.background.clone(),
@@ -117,45 +117,5 @@ fn setup(
         .insert(RigidBody::Fixed)
         .insert(Collider::cuboid(0.5 * (XEXTENT.1 - XEXTENT.0), 10.0));
 
-    // Player
-    commands
-        .spawn_bundle(PlayerBundle {
-            party_radius: PartyRadius(40.0),
-            ally: AllyBundle {
-                ally_type: AllyType::Player,
-                attack_range: AttackRange(60.0),
-                attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
-                damage: Damage(5.0),
-                health: Health(100.0, 100.0),
-                sprite: SpriteSheetBundle {
-                    texture_atlas: sprites.player.clone(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE))
-                        .with_translation(Vec3::new(0., 0., 2.)),
-                    ..default()
-                },
-                ..default()
-            },
-            ..default()
-        })
-        .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
-        .insert(Collider::cuboid(8.0, 8.0))
-        .insert(LockedAxes::ROTATION_LOCKED)
-        .with_children(|parent| {
-            let shape = shapes::Circle { ..default() };
-            parent.spawn_bundle(GeometryBuilder::build_as(
-                &shape,
-                DrawMode::Stroke(StrokeMode {
-                    color: Color::PURPLE,
-                    options: StrokeOptions::default().with_line_width(1.0),
-                }),
-                Transform::default(),
-            ));
-            parent.spawn_bundle(Camera2dBundle {
-                transform: Transform::from_scale(Vec2::splat(0.25).extend(1.))
-                    .with_translation(Vec3::Z * 997.9),
-                ..default()
-            });
-        });
-
-    commands.insert_resource(NextState(GameState::InGame));
+    commands.insert_resource(NextState(GameState::MainMenu));
 }

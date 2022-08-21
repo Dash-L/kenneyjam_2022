@@ -73,6 +73,12 @@ pub struct Sounds {
     pub game: Handle<AudioSource>,
 }
 
+#[derive(AssetCollection)]
+pub struct Fonts {
+    #[asset(path = "fonts/iosevka.ttf")]
+    pub main: Handle<Font>,
+}
+
 #[derive(Deref, DerefMut)]
 pub struct DraggingEntity(pub Option<Entity>);
 
