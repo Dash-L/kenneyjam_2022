@@ -1,11 +1,13 @@
+use std::marker::PhantomData;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyType,
-        Health, Projectile, ProjectileBundle,
+        AllyType, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile,
+        ProjectileBundle,
     },
     consts::PROJECTILE_SPEED,
     resources::Sprites,
@@ -65,7 +67,7 @@ fn auto_battle<A, T>(
 
 fn collide_projectiles<A, T>(
     mut commands: Commands,
-    projectiles: Query<&Damage, With<Projectile<A>>>,
+    mut projectiles: Query<(&Damage, &mut Projectile<AllyType>, Option<&AnimationTimer>)>,
     mut targets: Query<&mut Health, With<T>>,
     mut collision_events: EventReader<CollisionEvent>,
 ) where
@@ -76,23 +78,69 @@ fn collide_projectiles<A, T>(
     for event in collision_events.iter() {
         if let CollisionEvent::Started(e1, e2, _) = event {
             if !already_processed.contains(e1) && !already_processed.contains(e2) {
-                if let Ok(damage) = projectiles.get(*e1) {
-                    if let Ok(mut health) = targets.get_mut(*e2) {
-                        already_processed.push(*e1);
-                        health.0 -= damage.0;
-                        commands.entity(*e1).despawn_recursive();
+                if let Ok((damage, mut projectile, animation_timer)) = projectiles.get_mut(*e1) {
+                    if projectile.0 {
+                        if let Ok(mut health) = targets.get_mut(*e2) {
+                            already_processed.push(*e1);
+                            projectile.0 = false;
+                            health.0 -= damage.0;
+                            if animation_timer.is_none() {
+                                commands
+                                    .entity(*e1)
+                                    .insert(AnimationTimer(Timer::from_seconds(0.04, true)));
+                            }
+                        }
                     }
-                } else if let Ok(damage) = projectiles.get(*e2) {
-                    if let Ok(mut health) = targets.get_mut(*e1) {
-                        already_processed.push(*e2);
-                        health.0 -= damage.0;
-                        commands.entity(*e2).despawn_recursive();
+                } else if let Ok((damage, mut projectile, animation_timer)) =
+                    projectiles.get_mut(*e2)
+                {
+                    if projectile.0 {
+                        if let Ok(mut health) = targets.get_mut(*e1) {
+                            already_processed.push(*e2);
+                            projectile.0 = false;
+                            health.0 -= damage.0;
+                            if animation_timer.is_none() {
+                                commands
+                                    .entity(*e2)
+                                    .insert(AnimationTimer(Timer::from_seconds(0.04, true)));
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+// fn collide_melee(
+//     mut slashes: Query<(&Damage, &mut Slash)>,
+//     mut targets: Query<&mut Health>,
+//     mut collision_events: EventReader<CollisionEvent>,
+// ) {
+//     let mut already_processed = Vec::new();
+//     for event in collision_events.iter() {
+//         if let CollisionEvent::Started(e1, e2, _) = event {
+//             if !already_processed.contains(e1) && !already_processed.contains(e2) {
+//                 if let Ok((damage, mut active)) = slashes.get_mut(*e1) {
+//                     if active.0 {
+//                         if let Ok(mut health) = targets.get_mut(*e2) {
+//                             already_processed.push(*e1);
+//                             active.0 = false;
+//                             health.0 -= damage.0;
+//                         }
+//                     }
+//                 } else if let Ok((damage, mut active)) = slashes.get_mut(*e2) {
+//                     if active.0 {
+//                         if let Ok(mut health) = targets.get_mut(*e1) {
+//                             already_processed.push(*e2);
+//                             active.0 = false;
+//                             health.0 -= damage.0;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//}
 
 fn handle_ally_attacks(
     mut commands: Commands,
@@ -117,9 +165,9 @@ fn handle_ally_attacks(
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
-                                projectile: Projectile::<AllyType>::default(),
-                                sprite: SpriteBundle {
-                                    texture: sprites.arrow.clone(),
+                                projectile: Projectile::<AllyType>(true, PhantomData),
+                                sprite: SpriteSheetBundle {
+                                    texture_atlas: sprites.arrow.clone(),
                                     transform: Transform::from_translation(
                                         ally_transform.translation,
                                     )
@@ -148,9 +196,9 @@ fn handle_ally_attacks(
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
-                                projectile: Projectile::<AllyType>::default(),
-                                sprite: SpriteBundle {
-                                    texture: sprites.fireball.clone(),
+                                projectile: Projectile::<AllyType>(true, PhantomData),
+                                sprite: SpriteSheetBundle {
+                                    texture_atlas: sprites.fireball.clone(),
                                     transform: Transform::from_translation(
                                         ally_transform.translation,
                                     ),
@@ -162,7 +210,29 @@ fn handle_ally_attacks(
                             .insert(Sensor)
                             .insert(ActiveEvents::COLLISION_EVENTS);
                     }
-                    _ => {}
+                    _ => {
+                        let dir = (enemy_transform.translation.truncate()
+                            - ally_transform.translation.truncate())
+                        .normalize();
+                        commands
+                            .spawn_bundle(SpriteSheetBundle {
+                                texture_atlas: sprites.slash.clone(),
+                                transform: Transform::from_translation(
+                                    enemy_transform.translation - dir.extend(0.),
+                                )
+                                .with_scale(Vec3::splat(5.))
+                                .with_rotation(
+                                    Quat::from_rotation_z(Vec2::NEG_Y.angle_between(dir)),
+                                ),
+                                ..default()
+                            })
+                            .insert(AnimationTimer(Timer::from_seconds(0.03, true)))
+                            .insert(Collider::cuboid(5., 2.))
+                            .insert(Sensor)
+                            .insert(ActiveEvents::COLLISION_EVENTS)
+                            .insert(Projectile::<AllyType>(true, PhantomData))
+                            .insert(Damage(damage.0));
+                    }
                 }
             }
         }
@@ -193,9 +263,9 @@ fn handle_enemy_attacks(
                                     ..default()
                                 },
                                 damage: Damage(damage.0),
-                                projectile: Projectile::<EnemyType>::default(),
-                                sprite: SpriteBundle {
-                                    texture: sprites.fireball.clone(),
+                                projectile: Projectile::<EnemyType>(true, PhantomData),
+                                sprite: SpriteSheetBundle {
+                                    texture_atlas: sprites.fireball.clone(),
                                     transform: Transform::from_translation(
                                         enemy_transform.translation,
                                     )

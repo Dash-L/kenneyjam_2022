@@ -42,10 +42,15 @@ pub struct Sprites {
     #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 3, rows = 1))]
     #[asset(path = "sprites/spider-sheet.png")]
     pub spider: Handle<TextureAtlas>,
-    #[asset(path = "sprites/fireball.png")]
-    pub fireball: Handle<Image>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 4, rows = 1))]
+    #[asset(path = "sprites/fireball-sheet.png")]
+    pub fireball: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 1, rows = 1))]
     #[asset(path = "sprites/arrow.png")]
-    pub arrow: Handle<Image>,
+    pub arrow: Handle<TextureAtlas>,
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 8, rows = 1))]
+    #[asset(path = "sprites/slash-sheet.png")]
+    pub slash: Handle<TextureAtlas>,
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
 }

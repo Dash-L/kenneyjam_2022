@@ -1,19 +1,27 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::{AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar},
+    components::{
+        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar, Projectile,
+    },
     consts::HEALTH_BAR_LEN,
-    resources::EnemiesCount,
+    resources::{AllyCount, EnemiesCount},
 };
 
 pub fn animate_sprites(
     time: Res<Time>,
     texture_atlases: Res<Assets<TextureAtlas>>,
-    mut query: Query<(
-        &mut AnimationTimer,
-        &mut TextureAtlasSprite,
-        &Handle<TextureAtlas>,
-    )>,
+    mut query: Query<
+        (
+            &mut AnimationTimer,
+            &mut TextureAtlasSprite,
+            &Handle<TextureAtlas>,
+        ),
+        Or<(
+            Without<Projectile<AllyType>>,
+            Without<Projectile<EnemyType>>,
+        )>,
+    >,
 ) {
     for (mut timer, mut sprite, texture_atlas_handle) in &mut query {
         timer.tick(time.delta());
@@ -24,6 +32,32 @@ pub fn animate_sprites(
             sprite.index = (sprite.index + 1) % (texture_atlas.textures.len());
             if sprite.index == 0 {
                 sprite.index = 1;
+            }
+        }
+    }
+}
+
+pub fn animate_attacks(
+    mut commands: Commands,
+    time: Res<Time>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
+    mut query: Query<
+        (
+            Entity,
+            &mut AnimationTimer,
+            &mut TextureAtlasSprite,
+            &Handle<TextureAtlas>,
+        ),
+        Or<(With<Projectile<AllyType>>, With<Projectile<EnemyType>>)>,
+    >,
+) {
+    for (entity, mut timer, mut sprite, texture_atlas_handle) in &mut query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+            sprite.index = (sprite.index + 1) % (texture_atlas.textures.len());
+            if sprite.index == 0 {
+                commands.entity(entity).despawn_recursive();
             }
         }
     }

@@ -31,9 +31,8 @@ pub struct Damage(pub f32);
 
 #[derive(Component, Default)]
 pub struct Player;
-
 #[derive(Component, Clone, Copy, Default)]
-pub struct Projectile<C: Component>(pub PhantomData<C>);
+pub struct Projectile<C: Component>(pub bool, pub PhantomData<C>);
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct Speed(pub f32);
@@ -103,5 +102,5 @@ pub struct ProjectileBundle<C: Component> {
     pub damage: Damage,
     pub projectile: Projectile<C>,
     #[bundle]
-    pub sprite: SpriteBundle,
+    pub sprite: SpriteSheetBundle,
 }

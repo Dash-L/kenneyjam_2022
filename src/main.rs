@@ -56,6 +56,7 @@ fn main() {
         .add_plugin(DragAndDropPlugin)
         .add_enter_system(GameState::Setup, setup)
         .add_system(animate_sprites)
+        .add_system(animate_attacks)
         .add_system(spawn_health_bars)
         .add_system(update_health_bars)
         .add_system(despawn_zero_health)
@@ -118,7 +119,7 @@ fn setup(mut commands: Commands, sprites: Res<Sprites>) {
             party_radius: PartyRadius(20.0),
             ally: AllyBundle {
                 ally_type: AllyType::Player,
-                attack_range: AttackRange(5.0),
+                attack_range: AttackRange(20. * SPRITE_SCALE),
                 attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
                 damage: Damage(5.0),
                 health: Health(75.0, 100.0),
