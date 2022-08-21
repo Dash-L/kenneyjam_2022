@@ -112,9 +112,9 @@ pub fn animate_attacks(
     }
 }
 
-pub fn regen(mut entities: Query<&mut Health>) {
+pub fn regen(mut entities: Query<&mut Health, Without<EnemyType>>) {
     for mut health in &mut entities {
-        health.0 += 0.05;
+        health.0 += 0.075;
         if health.0 > health.1 {
             health.0 = health.1;
         }

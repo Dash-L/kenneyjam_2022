@@ -4,7 +4,10 @@ use crate::{
         PartyRadius, Player, Speed,
     },
     consts::{SPRITE_SCALE, XEXTENT, YEXTENT},
-    resources::{AllySpawnTimer, DifficultyScaleTimer, EnemySpawnChance, EnemySpawnTimer, Sprites},
+    resources::{
+        AllySpawnTimer, DifficultyScaleTimer, EnemyScale, EnemySpawnChance, EnemySpawnTimer,
+        Sprites,
+    },
     AllyType, EnemyType, GameState,
 };
 use bevy::prelude::*;
@@ -17,8 +20,9 @@ impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemySpawnTimer(Timer::from_seconds(0.75, true)))
             .insert_resource(AllySpawnTimer(Timer::from_seconds(1.0, true)))
-            .insert_resource(DifficultyScaleTimer(Timer::from_seconds(3.0, true)))
+            .insert_resource(DifficultyScaleTimer(Timer::from_seconds(1.5, true)))
             .insert_resource(EnemySpawnChance(0.8))
+            .insert_resource(EnemyScale(1.0))
             .add_system_set(
                 ConditionSet::new()
                     .run_in_state(GameState::InGame)
@@ -34,10 +38,12 @@ fn scale_difficulty(
     time: Res<Time>,
     mut difficulty_timer: ResMut<DifficultyScaleTimer>,
     mut spawn_chance: ResMut<EnemySpawnChance>,
+    mut enemy_scale: ResMut<EnemyScale>,
 ) {
     difficulty_timer.tick(time.delta());
     if difficulty_timer.just_finished() {
-        spawn_chance.0 /= 1.02;
+        spawn_chance.0 /= 1.03;
+        enemy_scale.0 *= 1.02;
     }
 }
 
@@ -53,7 +59,7 @@ fn spawn_allies(
     if spawn_timer.just_finished() {
         let mut rng = rand::thread_rng();
         let roll: f32 = rng.gen();
-        if roll >= 0.83 {
+        if roll >= 0.8 {
             let (player_transform, party_radius) = player.single();
             const MAX_TRIES: u32 = 100;
             let mut i = 0;
@@ -178,6 +184,7 @@ fn spawn_wave(
     time: Res<Time>,
     sprites: Res<Sprites>,
     enemy_spawn_chance: Res<EnemySpawnChance>,
+    enemy_scale: Res<EnemyScale>,
     mut spawn_timer: ResMut<EnemySpawnTimer>,
     player: Query<(&Transform, &PartyRadius), With<Player>>,
 ) {
@@ -218,8 +225,8 @@ fn spawn_wave(
                 EnemyType::Bat => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
                     speed: Speed(90.0),
-                    health: Health(60.0, 60.0),
-                    damage: Damage(8.0),
+                    health: Health(60.0 * enemy_scale.0, 60.0 * enemy_scale.0),
+                    damage: Damage(8.0 * enemy_scale.0),
                     attack_range: AttackRange(45.),
                     attack_timer: AttackTimer(Timer::from_seconds(0.75, true)),
                     sprite: SpriteSheetBundle {
@@ -232,8 +239,8 @@ fn spawn_wave(
                 EnemyType::EvilWizard => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
                     speed: Speed(70.0),
-                    health: Health(75.0, 75.0),
-                    damage: Damage(15.),
+                    health: Health(75.0 * enemy_scale.0, 75.0 * enemy_scale.0),
+                    damage: Damage(15. * enemy_scale.0),
                     attack_range: AttackRange(200.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.25, true)),
                     sprite: SpriteSheetBundle {
@@ -246,8 +253,8 @@ fn spawn_wave(
                 EnemyType::Ghost => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
                     speed: Speed(65.0),
-                    health: Health(100.0, 100.0),
-                    damage: Damage(20.),
+                    health: Health(100.0 * enemy_scale.0, 100.0 * enemy_scale.0),
+                    damage: Damage(20. * enemy_scale.0),
                     attack_range: AttackRange(60.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
@@ -260,8 +267,8 @@ fn spawn_wave(
                 EnemyType::Lobster => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
                     speed: Speed(75.0),
-                    health: Health(80.0, 80.0),
-                    damage: Damage(15.),
+                    health: Health(80.0 * enemy_scale.0, 80.0 * enemy_scale.0),
+                    damage: Damage(15. * enemy_scale.0),
                     attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
@@ -274,8 +281,8 @@ fn spawn_wave(
                 EnemyType::Rat => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
                     speed: Speed(110.0),
-                    health: Health(50.0, 50.0),
-                    damage: Damage(5.),
+                    health: Health(50.0 * enemy_scale.0, 50.0 * enemy_scale.0),
+                    damage: Damage(5. * enemy_scale.0),
                     attack_range: AttackRange(50.),
                     attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
                     sprite: SpriteSheetBundle {
@@ -288,8 +295,8 @@ fn spawn_wave(
                 EnemyType::Spider => commands.spawn_bundle(EnemyBundle {
                     enemy_type,
                     speed: Speed(150.0),
-                    health: Health(65.0, 65.0),
-                    damage: Damage(10.),
+                    health: Health(65.0 * enemy_scale.0, 65.0 * enemy_scale.0),
+                    damage: Damage(10. * enemy_scale.0),
                     attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(0.75, true)),
                     sprite: SpriteSheetBundle {

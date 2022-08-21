@@ -96,5 +96,7 @@ pub struct DifficultyScaleTimer(pub Timer);
 
 pub struct EnemySpawnChance(pub f32);
 
+pub struct EnemyScale(pub f32);
+
 #[derive(Default, Deref, DerefMut)]
 pub struct MusicController(pub Handle<AudioSink>);

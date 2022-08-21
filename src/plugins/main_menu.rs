@@ -10,7 +10,7 @@ use crate::{
     },
     consts::{SPRITE_SCALE, TRANSPARENT},
     helpers::{button_pressed, despawn_with, go_to_state, update_buttons},
-    resources::{Fonts, MusicController, Sounds, Sprites},
+    resources::{EnemyScale, EnemySpawnChance, Fonts, MusicController, Sounds, Sprites},
     GameState,
 };
 
@@ -99,7 +99,14 @@ fn setup_menu(mut commands: Commands, fonts: Res<Fonts>) {
         .insert(MainMenu);
 }
 
-fn spawn_player(mut commands: Commands, sprites: Res<Sprites>) {
+fn spawn_player(
+    mut commands: Commands,
+    sprites: Res<Sprites>,
+    mut spawn_chance: ResMut<EnemySpawnChance>,
+    mut enemy_scale: ResMut<EnemyScale>,
+) {
+    spawn_chance.0 = 0.8;
+    enemy_scale.0 = 1.0;
     commands
         .spawn_bundle(PlayerBundle {
             party_radius: PartyRadius(40.0),
@@ -107,7 +114,7 @@ fn spawn_player(mut commands: Commands, sprites: Res<Sprites>) {
                 ally_type: AllyType::Player,
                 attack_range: AttackRange(60.0),
                 attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
-                damage: Damage(5.0),
+                damage: Damage(10.0),
                 health: Health(100.0, 100.0),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.player.clone(),
