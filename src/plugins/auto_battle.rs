@@ -7,10 +7,10 @@ use iyes_loopless::prelude::*;
 use crate::{
     components::{
         AllyType, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyType, Health, Projectile,
-        ProjectileBundle,
+        ProjectileBundle, Sound,
     },
     consts::PROJECTILE_SPEED,
-    resources::Sprites,
+    resources::{Sounds, Sprites},
     GameState,
 };
 
@@ -67,10 +67,12 @@ fn auto_battle<A, T>(
 
 fn collide_projectiles<A, T>(
     mut commands: Commands,
+    audio: Res<Audio>,
     mut projectiles: Query<(
         &Damage,
         &mut Projectile<A>,
         Option<&AnimationTimer>,
+        &Sound,
         Option<&mut Velocity>,
     )>,
     mut targets: Query<&mut Health, With<T>>,
@@ -83,7 +85,8 @@ fn collide_projectiles<A, T>(
     for event in collision_events.iter() {
         if let CollisionEvent::Started(e1, e2, _) = event {
             if !already_processed.contains(e1) && !already_processed.contains(e2) {
-                if let Ok((damage, mut projectile, animation_timer, vel)) = projectiles.get_mut(*e1)
+                if let Ok((damage, mut projectile, animation_timer, sound, vel)) =
+                    projectiles.get_mut(*e1)
                 {
                     if projectile.0 {
                         if let Ok(mut health) = targets.get_mut(*e2) {
@@ -93,6 +96,7 @@ fn collide_projectiles<A, T>(
                             if let Some(mut vel) = vel {
                                 vel.linvel = Vec2::ZERO;
                             }
+                            audio.play_with_settings(sound.0.clone(), PlaybackSettings::ONCE.with_volume(0.3));
                             if animation_timer.is_none() {
                                 commands
                                     .entity(*e1)
@@ -100,7 +104,7 @@ fn collide_projectiles<A, T>(
                             }
                         }
                     }
-                } else if let Ok((damage, mut projectile, animation_timer, vel)) =
+                } else if let Ok((damage, mut projectile, animation_timer, sound, vel)) =
                     projectiles.get_mut(*e2)
                 {
                     if projectile.0 {
@@ -111,6 +115,7 @@ fn collide_projectiles<A, T>(
                             if let Some(mut vel) = vel {
                                 vel.linvel = Vec2::ZERO;
                             }
+                            audio.play_with_settings(sound.0.clone(), PlaybackSettings::ONCE.with_volume(0.3));
                             if animation_timer.is_none() {
                                 commands
                                     .entity(*e2)
@@ -127,6 +132,7 @@ fn collide_projectiles<A, T>(
 fn handle_ally_attacks(
     mut commands: Commands,
     sprites: Res<Sprites>,
+    sounds: Res<Sounds>,
     mut attack_events: EventReader<AttackEvent<AllyType>>,
     allies: Query<(&Transform, &Damage, &AllyType)>,
     enemies: Query<&Transform, With<EnemyType>>,
@@ -163,7 +169,8 @@ fn handle_ally_attacks(
                                 ..default()
                             })
                             .insert(Sensor)
-                            .insert(ActiveEvents::COLLISION_EVENTS);
+                            .insert(ActiveEvents::COLLISION_EVENTS)
+                            .insert(Sound(sounds.arrow.clone()));
                     }
                     AllyType::Wizard => {
                         commands
@@ -189,7 +196,8 @@ fn handle_ally_attacks(
                                 ..default()
                             })
                             .insert(Sensor)
-                            .insert(ActiveEvents::COLLISION_EVENTS);
+                            .insert(ActiveEvents::COLLISION_EVENTS)
+                            .insert(Sound(sounds.fireball.clone()));
                     }
                     _ => {
                         let dir = (enemy_transform.translation.truncate()
@@ -212,7 +220,8 @@ fn handle_ally_attacks(
                             .insert(Sensor)
                             .insert(ActiveEvents::COLLISION_EVENTS)
                             .insert(Projectile::<AllyType>(true, PhantomData))
-                            .insert(Damage(damage.0));
+                            .insert(Damage(damage.0))
+                            .insert(Sound(sounds.slash.clone()));
                     }
                 }
             }
@@ -223,6 +232,7 @@ fn handle_ally_attacks(
 fn handle_enemy_attacks(
     mut commands: Commands,
     sprites: Res<Sprites>,
+    sounds: Res<Sounds>,
     mut attack_events: EventReader<AttackEvent<EnemyType>>,
     enemies: Query<(&Transform, &Damage, &EnemyType)>,
     allies: Query<&Transform, With<AllyType>>,
@@ -255,7 +265,8 @@ fn handle_enemy_attacks(
                                 ..default()
                             })
                             .insert(Sensor)
-                            .insert(ActiveEvents::COLLISION_EVENTS);
+                            .insert(ActiveEvents::COLLISION_EVENTS)
+                            .insert(Sound(sounds.fireball.clone()));
                     }
                     _ => {
                         commands
@@ -270,7 +281,8 @@ fn handle_enemy_attacks(
                             .insert(Sensor)
                             .insert(ActiveEvents::COLLISION_EVENTS)
                             .insert(Projectile::<EnemyType>(true, PhantomData))
-                            .insert(Damage(damage.0));
+                            .insert(Damage(damage.0))
+                            .insert(Sound(sounds.enemy_hit.clone()));
                     }
                 }
             }

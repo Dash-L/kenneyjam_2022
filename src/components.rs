@@ -1,7 +1,7 @@
 use bevy_rapier2d::prelude::*;
 use std::marker::PhantomData;
 
-use bevy::prelude::*;
+use bevy::{ecs::component, prelude::*};
 use num_derive::FromPrimitive;
 
 #[derive(Component, Default)]
@@ -36,6 +36,9 @@ pub struct Projectile<C: Component>(pub bool, pub PhantomData<C>);
 
 #[derive(Component, Deref, DerefMut, Default)]
 pub struct Speed(pub f32);
+
+#[derive(Component)]
+pub struct Sound(pub Handle<AudioSource>);
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, FromPrimitive, Default)]
 pub enum EnemyType {

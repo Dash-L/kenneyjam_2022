@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{audio::AudioSink, prelude::*};
 use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection)]
@@ -53,6 +53,24 @@ pub struct Sprites {
     pub slash: Handle<TextureAtlas>,
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
+}
+
+#[derive(AssetCollection)]
+pub struct Sounds {
+    #[asset(path = "sounds/arrowsound.wav")]
+    pub arrow: Handle<AudioSource>,
+    #[asset(path = "sounds/enemyhit.wav")]
+    pub enemy_hit: Handle<AudioSource>,
+    #[asset(path = "sounds/fireballsound.wav")]
+    pub fireball: Handle<AudioSource>,
+    #[asset(path = "sounds/hitsound.wav")]
+    pub player_hit: Handle<AudioSource>,
+    #[asset(path = "sounds/slashsound.wav")]
+    pub slash: Handle<AudioSource>,
+    #[asset(path = "sounds/menumusic.wav")]
+    pub menu: Handle<AudioSource>,
+    #[asset(path = "sounds/gamemusic.wav")]
+    pub game: Handle<AudioSource>,
 }
 
 #[derive(Deref, DerefMut)]

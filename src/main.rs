@@ -44,7 +44,8 @@ fn main() {
         .add_loading_state(
             LoadingState::new(GameState::Load)
                 .continue_to_state(GameState::Setup)
-                .with_collection::<Sprites>(),
+                .with_collection::<Sprites>()
+                .with_collection::<Sounds>(),
         )
         .add_plugins(DefaultPlugins)
         .add_plugin(ShapePlugin)
@@ -64,7 +65,12 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, sprites: Res<Sprites>) {
+fn setup(
+    mut commands: Commands,
+    sprites: Res<Sprites>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
+) {
     // Background
     commands.spawn_bundle(SpriteBundle {
         texture: sprites.background.clone(),
