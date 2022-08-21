@@ -7,8 +7,7 @@ use iyes_loopless::prelude::*;
 
 use crate::{
     components::{AllyType, AnimationTimer, EnemyType, InParty, PartyRadius, Player},
-    consts::{SPRITE_SCALE, XEXTENT, YEXTENT},
-    resources::AllyCount,
+    consts::SPRITE_SCALE,
     GameState,
 };
 pub struct PlayerPlugin;
@@ -18,10 +17,18 @@ impl Plugin for PlayerPlugin {
         app.add_system_set(
             ConditionSet::new()
                 .run_in_state(GameState::InGame)
+                .label("first")
                 .with_system(handle_inputs)
                 .with_system(update_circle)
                 .with_system(add_to_party)
-                .with_system(move_enemies_towards_player)
+                .with_system(move_enemies_towards_closest_ally)
+                .into(),
+        )
+        .add_system_set(
+            ConditionSet::new()
+                .run_in_state(GameState::InGame)
+                .after("first")
+                .with_system(keep_allies_in_circle)
                 .into(),
         );
     }
@@ -82,7 +89,6 @@ fn add_to_party(
     mut commands: Commands,
     player: Query<(&Transform, &PartyRadius), With<Player>>,
     entities: Query<(Entity, &Transform), (Without<InParty>, Without<Player>, With<AllyType>)>,
-    mut ally_count: ResMut<AllyCount>,
 ) {
     let (player_transform, party_radius) = player.single();
     for (entity, transform) in &entities {
@@ -93,20 +99,47 @@ fn add_to_party(
             < party_radius.0 * SPRITE_SCALE
         {
             commands.entity(entity).insert(InParty);
-            ally_count.0 -= 1;
         }
     }
 }
 
-fn move_enemies_towards_player(
-    player: Query<&Transform, With<Player>>,
+fn keep_allies_in_circle(
+    player: Query<(&Transform, &PartyRadius), With<Player>>,
+    mut party_members: Query<(&Transform, &mut Velocity), With<InParty>>,
+) {
+    let (player_transform, party_radius) = player.single();
+    for (transform, mut vel) in &mut party_members {
+        if player_transform
+            .translation
+            .truncate()
+            .distance(transform.translation.truncate())
+            > party_radius.0 * SPRITE_SCALE
+        {
+            vel.linvel = (player_transform.translation.truncate()
+                - transform.translation.truncate())
+            .normalize()
+                * 400.0;
+        }
+    }
+}
+
+fn move_enemies_towards_closest_ally(
+    allies: Query<&Transform, With<AllyType>>,
     mut enemies: Query<(&Transform, &mut Velocity), With<EnemyType>>,
 ) {
-    let player_transform = player.single();
     for (enemy_transform, mut velocity) in &mut enemies {
-        velocity.linvel = (player_transform.translation.truncate()
-            - enemy_transform.translation.truncate())
-        .normalize()
-            * 100.0;
+        let mut closest = (f32::MAX, Transform::default());
+        for ally_transform in &allies {
+            let dist = enemy_transform
+                .translation
+                .truncate()
+                .distance(ally_transform.translation.truncate());
+            if dist < closest.0 {
+                closest = (dist, *ally_transform);
+            }
+        }
+        velocity.linvel =
+            (closest.1.translation.truncate() - enemy_transform.translation.truncate()).normalize()
+                * 100.0;
     }
 }

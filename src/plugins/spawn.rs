@@ -1,6 +1,7 @@
 use crate::{
     components::{
-        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health,
+        AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health, InParty,
+        Player,
     },
     consts::{HEIGHT, SPRITE_SCALE, WIDTH, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
@@ -24,10 +25,22 @@ impl Plugin for SpawnPlugin {
                     .run_in_state(GameState::InGame)
                     .with_system(spawn_wave)
                     .with_system(spawn_allies)
+                    .with_system(count)
                     .into(),
             );
     }
 }
+
+fn count(
+    mut ally_count: ResMut<AllyCount>,
+    mut enemy_count: ResMut<EnemiesCount>,
+    allies: Query<Entity, (With<AllyType>, Without<Player>, Without<InParty>)>,
+    enemies: Query<Entity, With<EnemyType>>,
+) {
+    ally_count.0 = allies.iter().count() as u32;
+    enemy_count.0 = enemies.iter().count() as u32;
+}
+
 fn spawn_allies(
     mut commands: Commands,
     sprites: Res<Sprites>,
@@ -57,7 +70,7 @@ fn spawn_allies(
                 ally_type,
                 health: Health(100.0, 100.0),
                 damage: Damage(25.0),
-                attack_range: AttackRange(1000.),
+                attack_range: AttackRange(80.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.alchemist.clone(),
@@ -70,7 +83,7 @@ fn spawn_allies(
                 ally_type,
                 health: Health(100.0, 100.0),
                 damage: Damage(25.0),
-                attack_range: AttackRange(1000.),
+                attack_range: AttackRange(200.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.archer.clone(),
@@ -83,7 +96,7 @@ fn spawn_allies(
                 ally_type,
                 health: Health(100.0, 100.0),
                 damage: Damage(25.0),
-                attack_range: AttackRange(1000.),
+                attack_range: AttackRange(80.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.cyclops.clone(),
@@ -96,7 +109,7 @@ fn spawn_allies(
                 ally_type,
                 health: Health(100.0, 100.0),
                 damage: Damage(25.0),
-                attack_range: AttackRange(1000.),
+                attack_range: AttackRange(80.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.dwarf.clone(),
@@ -109,7 +122,7 @@ fn spawn_allies(
                 ally_type,
                 health: Health(100.0, 100.0),
                 damage: Damage(25.0),
-                attack_range: AttackRange(1000.),
+                attack_range: AttackRange(80.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.knight.clone(),
@@ -122,7 +135,7 @@ fn spawn_allies(
                 ally_type,
                 health: Health(100.0, 100.0),
                 damage: Damage(25.0),
-                attack_range: AttackRange(1000.),
+                attack_range: AttackRange(300.),
                 attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                 sprite: SpriteSheetBundle {
                     texture_atlas: sprites.wizard.clone(),
@@ -136,7 +149,6 @@ fn spawn_allies(
         .insert(AnimationTimer(timer))
         .insert(Collider::cuboid(8.0, 8.0))
         .insert(LockedAxes::ROTATION_LOCKED);
-        **ally_count += 1;
     }
 }
 
@@ -169,7 +181,7 @@ fn spawn_wave(
                     enemy_type,
                     health: Health(100.0, 100.0),
                     damage: Damage(10.0),
-                    attack_range: AttackRange(1000.),
+                    attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
                         texture_atlas: sprites.bat.clone(),
@@ -182,7 +194,7 @@ fn spawn_wave(
                     enemy_type,
                     health: Health(100.0, 100.0),
                     damage: Damage(10.),
-                    attack_range: AttackRange(1000.),
+                    attack_range: AttackRange(300.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
                         texture_atlas: sprites.evil_wizard.clone(),
@@ -195,7 +207,7 @@ fn spawn_wave(
                     enemy_type,
                     health: Health(100.0, 100.0),
                     damage: Damage(10.),
-                    attack_range: AttackRange(1000.),
+                    attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
                         texture_atlas: sprites.ghost.clone(),
@@ -208,7 +220,7 @@ fn spawn_wave(
                     enemy_type,
                     health: Health(100.0, 100.0),
                     damage: Damage(10.),
-                    attack_range: AttackRange(1000.),
+                    attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
                         texture_atlas: sprites.lobster.clone(),
@@ -221,7 +233,7 @@ fn spawn_wave(
                     enemy_type,
                     health: Health(100.0, 100.0),
                     damage: Damage(10.),
-                    attack_range: AttackRange(1000.),
+                    attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
                         texture_atlas: sprites.rat.clone(),
@@ -234,7 +246,7 @@ fn spawn_wave(
                     enemy_type,
                     health: Health(100.0, 100.0),
                     damage: Damage(10.),
-                    attack_range: AttackRange(1000.),
+                    attack_range: AttackRange(40.),
                     attack_timer: AttackTimer(Timer::from_seconds(1.0, true)),
                     sprite: SpriteSheetBundle {
                         texture_atlas: sprites.spider.clone(),
@@ -247,7 +259,6 @@ fn spawn_wave(
             .insert(AnimationTimer(timer))
             .insert(Collider::cuboid(8.0, 8.0))
             .insert(LockedAxes::ROTATION_LOCKED);
-            **enemy_count += 1;
         }
     }
 }

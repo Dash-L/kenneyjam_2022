@@ -2,10 +2,10 @@ use bevy::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar, Projectile,
+        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar, Player,
+        Projectile,
     },
     consts::HEALTH_BAR_LEN,
-    resources::{AllyCount, EnemiesCount},
 };
 
 pub fn animate_sprites(
@@ -17,10 +17,10 @@ pub fn animate_sprites(
             &mut TextureAtlasSprite,
             &Handle<TextureAtlas>,
         ),
-        Or<(
+        (
             Without<Projectile<AllyType>>,
             Without<Projectile<EnemyType>>,
-        )>,
+        ),
     >,
 ) {
     for (mut timer, mut sprite, texture_atlas_handle) in &mut query {
@@ -59,6 +59,15 @@ pub fn animate_attacks(
             if sprite.index == 0 {
                 commands.entity(entity).despawn_recursive();
             }
+        }
+    }
+}
+
+pub fn regen(mut entities: Query<&mut Health>) {
+    for mut health in &mut entities {
+        health.0 += 0.01;
+        if health.0 > health.1 {
+            health.0 = health.1;
         }
     }
 }
@@ -113,14 +122,13 @@ pub fn update_health_bars(
 
 pub fn despawn_zero_health(
     mut commands: Commands,
-    mut enemy_count: ResMut<EnemiesCount>,
-    entities: Query<(Entity, &Health, Option<&EnemyType>)>,
+    entities: Query<(Entity, &Health, Option<&Player>)>,
 ) {
-    for (entity, health, maybe_enemy) in &entities {
+    for (entity, health, maybe_player) in &entities {
         if health.0 <= 0.0 {
             commands.entity(entity).despawn_recursive();
-            if maybe_enemy.is_some() {
-                **enemy_count -= 1;
+            if maybe_player.is_some() {
+                // you died screen or smth
             }
         }
     }

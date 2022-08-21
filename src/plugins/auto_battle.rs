@@ -67,7 +67,12 @@ fn auto_battle<A, T>(
 
 fn collide_projectiles<A, T>(
     mut commands: Commands,
-    mut projectiles: Query<(&Damage, &mut Projectile<AllyType>, Option<&AnimationTimer>)>,
+    mut projectiles: Query<(
+        &Damage,
+        &mut Projectile<A>,
+        Option<&AnimationTimer>,
+        Option<&mut Velocity>,
+    )>,
     mut targets: Query<&mut Health, With<T>>,
     mut collision_events: EventReader<CollisionEvent>,
 ) where
@@ -78,20 +83,24 @@ fn collide_projectiles<A, T>(
     for event in collision_events.iter() {
         if let CollisionEvent::Started(e1, e2, _) = event {
             if !already_processed.contains(e1) && !already_processed.contains(e2) {
-                if let Ok((damage, mut projectile, animation_timer)) = projectiles.get_mut(*e1) {
+                if let Ok((damage, mut projectile, animation_timer, vel)) = projectiles.get_mut(*e1)
+                {
                     if projectile.0 {
                         if let Ok(mut health) = targets.get_mut(*e2) {
                             already_processed.push(*e1);
                             projectile.0 = false;
                             health.0 -= damage.0;
+                            if let Some(mut vel) = vel {
+                                vel.linvel = Vec2::ZERO;
+                            }
                             if animation_timer.is_none() {
                                 commands
                                     .entity(*e1)
-                                    .insert(AnimationTimer(Timer::from_seconds(0.04, true)));
+                                    .insert(AnimationTimer(Timer::from_seconds(0.1, true)));
                             }
                         }
                     }
-                } else if let Ok((damage, mut projectile, animation_timer)) =
+                } else if let Ok((damage, mut projectile, animation_timer, vel)) =
                     projectiles.get_mut(*e2)
                 {
                     if projectile.0 {
@@ -99,10 +108,13 @@ fn collide_projectiles<A, T>(
                             already_processed.push(*e2);
                             projectile.0 = false;
                             health.0 -= damage.0;
+                            if let Some(mut vel) = vel {
+                                vel.linvel = Vec2::ZERO;
+                            }
                             if animation_timer.is_none() {
                                 commands
                                     .entity(*e2)
-                                    .insert(AnimationTimer(Timer::from_seconds(0.04, true)));
+                                    .insert(AnimationTimer(Timer::from_seconds(0.1, true)));
                             }
                         }
                     }
@@ -111,36 +123,6 @@ fn collide_projectiles<A, T>(
         }
     }
 }
-// fn collide_melee(
-//     mut slashes: Query<(&Damage, &mut Slash)>,
-//     mut targets: Query<&mut Health>,
-//     mut collision_events: EventReader<CollisionEvent>,
-// ) {
-//     let mut already_processed = Vec::new();
-//     for event in collision_events.iter() {
-//         if let CollisionEvent::Started(e1, e2, _) = event {
-//             if !already_processed.contains(e1) && !already_processed.contains(e2) {
-//                 if let Ok((damage, mut active)) = slashes.get_mut(*e1) {
-//                     if active.0 {
-//                         if let Ok(mut health) = targets.get_mut(*e2) {
-//                             already_processed.push(*e1);
-//                             active.0 = false;
-//                             health.0 -= damage.0;
-//                         }
-//                     }
-//                 } else if let Ok((damage, mut active)) = slashes.get_mut(*e2) {
-//                     if active.0 {
-//                         if let Ok(mut health) = targets.get_mut(*e1) {
-//                             already_processed.push(*e2);
-//                             active.0 = false;
-//                             health.0 -= damage.0;
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//}
 
 fn handle_ally_attacks(
     mut commands: Commands,
@@ -184,8 +166,6 @@ fn handle_ally_attacks(
                             .insert(ActiveEvents::COLLISION_EVENTS);
                     }
                     AllyType::Wizard => {
-                        let mut timer = Timer::from_seconds(0.02, false);
-                        timer.pause();
                         commands
                             .spawn_bundle(ProjectileBundle {
                                 velocity: Velocity {
@@ -201,7 +181,8 @@ fn handle_ally_attacks(
                                     texture_atlas: sprites.fireball.clone(),
                                     transform: Transform::from_translation(
                                         ally_transform.translation,
-                                    ),
+                                    )
+                                    .with_scale(Vec3::splat(2.5)),
                                     ..default()
                                 },
                                 collider: Collider::cuboid(4.0, 4.0),
@@ -220,7 +201,7 @@ fn handle_ally_attacks(
                                 transform: Transform::from_translation(
                                     enemy_transform.translation - dir.extend(0.),
                                 )
-                                .with_scale(Vec3::splat(5.))
+                                .with_scale(Vec3::splat(4.))
                                 .with_rotation(
                                     Quat::from_rotation_z(Vec2::NEG_Y.angle_between(dir)),
                                 ),
@@ -251,8 +232,6 @@ fn handle_enemy_attacks(
             if let Ok(ally_transform) = allies.get(*ally_entity) {
                 match enemy_type {
                     EnemyType::EvilWizard => {
-                        let mut timer = Timer::from_seconds(0.5, false);
-                        timer.pause();
                         commands
                             .spawn_bundle(ProjectileBundle {
                                 velocity: Velocity {
@@ -269,7 +248,7 @@ fn handle_enemy_attacks(
                                     transform: Transform::from_translation(
                                         enemy_transform.translation,
                                     )
-                                    .with_scale(Vec3::splat(1.5)),
+                                    .with_scale(Vec3::splat(2.5)),
                                     ..default()
                                 },
                                 collider: Collider::cuboid(4.0, 4.0),
@@ -278,7 +257,21 @@ fn handle_enemy_attacks(
                             .insert(Sensor)
                             .insert(ActiveEvents::COLLISION_EVENTS);
                     }
-                    _ => {}
+                    _ => {
+                        commands
+                            .spawn_bundle(SpriteSheetBundle {
+                                texture_atlas: sprites.slash.clone(),
+                                transform: *ally_transform,
+                                visibility: Visibility { is_visible: false },
+                                ..default()
+                            })
+                            .insert(AnimationTimer(Timer::from_seconds(0.001, true)))
+                            .insert(Collider::cuboid(5., 2.))
+                            .insert(Sensor)
+                            .insert(ActiveEvents::COLLISION_EVENTS)
+                            .insert(Projectile::<EnemyType>(true, PhantomData))
+                            .insert(Damage(damage.0));
+                    }
                 }
             }
         }
