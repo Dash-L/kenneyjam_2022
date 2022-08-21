@@ -131,16 +131,21 @@ fn spawn_player(mut commands: Commands, sprites: Res<Sprites>) {
                 Transform::default(),
             ));
             parent.spawn_bundle(Camera2dBundle {
-                transform: Transform::from_scale(Vec2::splat(0.25).extend(1.))
+                transform: Transform::from_scale(Vec2::splat(0.5).extend(1.))
                     .with_translation(Vec3::Z * 997.9),
                 ..default()
             });
         });
 }
 
-fn show_player(mut player: Query<&mut Visibility, With<Player>>) {
+fn show_player(
+    mut player: Query<&mut Visibility, With<Player>>,
+    mut camera: Query<&mut Transform, With<Camera2d>>,
+) {
     let mut visibility = player.single_mut();
+    let mut transform = camera.single_mut();
     visibility.is_visible = true;
+    transform.scale = Vec2::splat(0.25).extend(1.);
 }
 
 fn exit(mut ev: EventWriter<AppExit>) {
