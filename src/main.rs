@@ -24,6 +24,7 @@ pub enum GameState {
     Load,
     Setup,
     MainMenu,
+    Info,
     InGame,
 }
 
@@ -31,7 +32,7 @@ fn main() {
     App::new()
         .insert_resource(ImageSettings::default_nearest())
         .insert_resource(WindowDescriptor {
-            title: "Kenney Jam".to_string(),
+            title: "Rekrutim".to_string(),
             width: WIDTH,
             height: HEIGHT,
             resizable: false,
@@ -52,7 +53,6 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(ShapePlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(MainMenuPlugin)
         .add_plugin(SpawnPlugin)
         .add_plugin(PlayerPlugin)

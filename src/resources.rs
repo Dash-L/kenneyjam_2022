@@ -54,6 +54,8 @@ pub struct Sprites {
     #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 14, rows = 1))]
     #[asset(path = "sprites/playerdeath-sheet.png")]
     pub player_death: Handle<TextureAtlas>,
+    #[asset(path = "sprites/character_info.png")]
+    pub info: Handle<Image>,
     #[asset(path = "sprites/background.png")]
     pub background: Handle<Image>,
 }

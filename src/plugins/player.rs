@@ -1,44 +1,110 @@
 use std::iter;
 
-use bevy::prelude::*;
+use bevy::{audio::AudioSink, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AnimationTimer, EnemyType, InParty, Indicator, IndicatorEntity, IsDead,
-        PartyRadius, Player, Speed,
+        AllyBundle, AllyType, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyType, Health,
+        InParty, Indicator, IndicatorEntity, IsDead, PartyRadius, Player, PlayerBundle, Speed,
     },
     consts::SPRITE_SCALE,
     helpers::{check_player_death, player_death_animation},
+    resources::{EnemyScale, EnemySpawnChance, MusicController, Sounds, Sprites},
     GameState,
 };
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
-            ConditionSet::new()
-                .run_in_state(GameState::InGame)
-                .label("first")
-                .with_system(handle_inputs)
-                .with_system(update_circle)
-                .with_system(add_to_party)
-                .with_system(move_enemies_towards_closest_ally)
-                .with_system(check_player_death)
-                .with_system(show_indicators)
-                .with_system(player_death_animation)
-                .into(),
-        )
-        .add_system_set(
-            ConditionSet::new()
-                .run_in_state(GameState::InGame)
-                .after("first")
-                .with_system(keep_allies_in_circle)
-                .into(),
-        );
+        app.add_enter_system(GameState::InGame, spawn_player)
+            .add_enter_system(GameState::InGame, start_game_music)
+            .add_system_set(
+                ConditionSet::new()
+                    .run_in_state(GameState::InGame)
+                    .label("first")
+                    .with_system(handle_inputs)
+                    .with_system(update_circle)
+                    .with_system(add_to_party)
+                    .with_system(move_enemies_towards_closest_ally)
+                    .with_system(check_player_death)
+                    .with_system(show_indicators)
+                    .with_system(player_death_animation)
+                    .into(),
+            )
+            .add_system_set(
+                ConditionSet::new()
+                    .run_in_state(GameState::InGame)
+                    .after("first")
+                    .with_system(keep_allies_in_circle)
+                    .into(),
+            );
     }
+}
+
+fn spawn_player(
+    mut commands: Commands,
+    sprites: Res<Sprites>,
+    mut spawn_chance: ResMut<EnemySpawnChance>,
+    mut enemy_scale: ResMut<EnemyScale>,
+) {
+    spawn_chance.0 = 0.8;
+    enemy_scale.0 = 1.0;
+    commands
+        .spawn_bundle(PlayerBundle {
+            party_radius: PartyRadius(40.0),
+            ally: AllyBundle {
+                ally_type: AllyType::Player,
+                attack_range: AttackRange(60.0),
+                attack_timer: AttackTimer(Timer::from_seconds(0.5, true)),
+                damage: Damage(10.0),
+                health: Health(100.0, 100.0),
+                sprite: SpriteSheetBundle {
+                    texture_atlas: sprites.player.clone(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE))
+                        .with_translation(Vec3::new(0., 0., 2.)),
+                    ..default()
+                },
+                ..default()
+            },
+            ..default()
+        })
+        .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
+        .insert(Collider::cuboid(8.0, 8.0))
+        .insert(LockedAxes::ROTATION_LOCKED)
+        .with_children(|parent| {
+            let shape = shapes::Circle { ..default() };
+            parent.spawn_bundle(GeometryBuilder::build_as(
+                &shape,
+                DrawMode::Stroke(StrokeMode {
+                    color: Color::PURPLE,
+                    options: StrokeOptions::default().with_line_width(1.0),
+                }),
+                Transform::default(),
+            ));
+            parent.spawn_bundle(Camera2dBundle {
+                transform: Transform::from_scale(Vec2::splat(0.25).extend(1.))
+                    .with_translation(Vec3::Z * 997.9),
+                ..default()
+            });
+        });
+}
+
+fn start_game_music(
+    audio_sinks: Res<Assets<AudioSink>>,
+    audio: Res<Audio>,
+    mut music_controller: ResMut<MusicController>,
+    sound: Res<Sounds>,
+) {
+    if let Some(current) = audio_sinks.get(&music_controller.0) {
+        current.stop();
+    }
+    let music = sound.game.clone();
+    let handle = audio_sinks
+        .get_handle(audio.play_with_settings(music, PlaybackSettings::LOOP.with_volume(0.07)));
+    music_controller.0 = handle;
 }
 
 fn handle_inputs(
