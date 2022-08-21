@@ -8,7 +8,7 @@ use iyes_loopless::prelude::*;
 use crate::{
     components::{
         AllyType, AnimationTimer, EnemyType, InParty, Indicator, IndicatorEntity, IsDead,
-        PartyRadius, Player,
+        PartyRadius, Player, Speed,
     },
     consts::SPRITE_SCALE,
     helpers::{check_player_death, player_death_animation},
@@ -209,9 +209,9 @@ fn keep_allies_in_circle(
 
 fn move_enemies_towards_closest_ally(
     allies: Query<&Transform, With<AllyType>>,
-    mut enemies: Query<(&Transform, &mut Velocity), With<EnemyType>>,
+    mut enemies: Query<(&Transform, &mut Velocity, &Speed), With<EnemyType>>,
 ) {
-    for (enemy_transform, mut velocity) in &mut enemies {
+    for (enemy_transform, mut velocity, speed) in &mut enemies {
         let mut closest = (f32::MAX, Transform::default());
         for ally_transform in &allies {
             let dist = enemy_transform
@@ -224,6 +224,6 @@ fn move_enemies_towards_closest_ally(
         }
         velocity.linvel =
             (closest.1.translation.truncate() - enemy_transform.translation.truncate()).normalize()
-                * 80.0;
+                * speed.0;
     }
 }

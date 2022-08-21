@@ -92,10 +92,9 @@ pub struct EnemySpawnTimer(pub Timer);
 pub struct AllySpawnTimer(pub Timer);
 
 #[derive(Deref, DerefMut)]
-pub struct EnemiesCount(pub u32);
+pub struct DifficultyScaleTimer(pub Timer);
 
-#[derive(Deref, DerefMut)]
-pub struct AllyCount(pub u32);
+pub struct EnemySpawnChance(pub f32);
 
 #[derive(Default, Deref, DerefMut)]
 pub struct MusicController(pub Handle<AudioSink>);

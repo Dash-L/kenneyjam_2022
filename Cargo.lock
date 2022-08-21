@@ -1946,8 +1946,6 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "iyes_loopless",
- "num-derive",
- "num-traits",
  "rand",
 ]
 

@@ -114,7 +114,7 @@ pub fn animate_attacks(
 
 pub fn regen(mut entities: Query<&mut Health>) {
     for mut health in &mut entities {
-        health.0 += 0.01;
+        health.0 += 0.05;
         if health.0 > health.1 {
             health.0 = health.1;
         }
@@ -186,7 +186,7 @@ pub fn despawn_zero_health(
         if health.0 <= 0.0 {
             if maybe_enemy.is_some() {
                 let mut radius = player.single_mut();
-                radius.0 += 0.05;
+                radius.0 += 0.1;
             }
             if let Some(indicator) = maybe_indicator {
                 if let Some(entity) = indicator.0 {
