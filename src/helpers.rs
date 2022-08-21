@@ -1,9 +1,12 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, MainHealthBar, Player,
+        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, IsDead, MainHealthBar, Player,
         Projectile,
     },
     consts::{BUTTON_CLICKED, BUTTON_DEFAULT, BUTTON_HOVERED, HEALTH_BAR_LEN},
@@ -65,6 +68,7 @@ pub fn animate_sprites(
         (
             Without<Projectile<AllyType>>,
             Without<Projectile<EnemyType>>,
+            Without<IsDead>,
         ),
     >,
 ) {
@@ -175,13 +179,68 @@ pub fn despawn_zero_health(
         }
     }
 }
-pub fn player_death(
+pub fn check_player_death(
+    mut commands: Commands,
     sprites: Res<Sprites>,
-    mut player: Query<(&Health, &mut Handle<TextureAtlas>), With<Player>>,
+    mut player: Query<
+        (Entity, &Health, &mut Handle<TextureAtlas>),
+        (With<Player>, Without<IsDead>),
+    >,
 ) {
-    let (health, mut animation) = player.single_mut();
+    for (entity, health, mut animation) in &mut player {
+        if health.0 <= 0.0 {
+            *animation = sprites.player_death.clone();
+            commands.entity(entity).insert(IsDead);
+        }
+    }
+}
 
-    if health.0 <= 0.0 {
-        *animation = sprites.player_death.clone();
+pub fn player_death_animation(
+    mut commands: Commands,
+    time: Res<Time>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
+    mut player: Query<
+        (
+            Entity,
+            &mut Health,
+            &mut Velocity,
+            &mut AnimationTimer,
+            &mut TextureAtlasSprite,
+            &Handle<TextureAtlas>,
+        ),
+        (With<Player>, With<IsDead>),
+    >,
+    entities: Query<Entity, (Without<Player>, Or<(With<AllyType>, With<EnemyType>)>)>,
+) {
+    for (
+        entity,
+        mut health,
+        mut vel,
+        mut animation_timer,
+        mut texture_atlas_sprite,
+        texture_atlas_handle,
+    ) in &mut player
+    {
+        animation_timer.set_duration(Duration::from_secs_f32(0.05));
+        health.0 = 0.0;
+        vel.linvel = Vec2::ZERO;
+        if animation_timer.paused() {
+            animation_timer.unpause();
+        }
+
+        animation_timer.tick(time.delta());
+        if animation_timer.just_finished() {
+            let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+            texture_atlas_sprite.index =
+                (texture_atlas_sprite.index + 1) % texture_atlas.textures.len();
+
+            if texture_atlas_sprite.index == 0 {
+                commands.entity(entity).despawn_recursive();
+                for entity in &entities {
+                    commands.entity(entity).despawn_recursive();
+                }
+                commands.insert_resource(NextState(GameState::MainMenu));
+            }
+        }
     }
 }

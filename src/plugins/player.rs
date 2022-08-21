@@ -6,10 +6,9 @@ use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
-    components::{AllyType, AnimationTimer, EnemyType, InParty, PartyRadius, Player},
+    components::{AllyType, AnimationTimer, EnemyType, InParty, IsDead, PartyRadius, Player},
     consts::SPRITE_SCALE,
-    helpers::player_death,
-    GameState,
+    GameState, helpers::{check_player_death, player_death_animation},
 };
 pub struct PlayerPlugin;
 
@@ -23,7 +22,8 @@ impl Plugin for PlayerPlugin {
                 .with_system(update_circle)
                 .with_system(add_to_party)
                 .with_system(move_enemies_towards_closest_ally)
-                .with_system(player_death)
+                .with_system(check_player_death)
+                .with_system(player_death_animation)
                 .into(),
         )
         .add_system_set(
@@ -37,40 +37,44 @@ impl Plugin for PlayerPlugin {
 }
 
 fn handle_inputs(
-    mut player: Query<(&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite), With<Player>>,
+    mut player: Query<
+        (&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite),
+        (With<Player>, Without<IsDead>),
+    >,
     mut party_members: Query<
         (&mut Velocity, &mut AnimationTimer, &mut TextureAtlasSprite),
         (With<InParty>, Without<Player>),
     >,
     keyboard: Res<Input<KeyCode>>,
 ) {
-    let (velocity, animation_timer, texture_atlas_sprite) = player.single_mut();
-    for (mut velocity, mut animation_timer, mut texture_atlas_sprite) in
-        iter::once((velocity, animation_timer, texture_atlas_sprite))
-            .chain(party_members.iter_mut())
-    {
-        velocity.linvel = Vec2::ZERO;
-        if keyboard.pressed(KeyCode::W) {
-            velocity.linvel.y += 1.;
-        }
-        if keyboard.pressed(KeyCode::S) {
-            velocity.linvel.y -= 1.;
-        }
-        if keyboard.pressed(KeyCode::D) {
-            velocity.linvel.x += 1.;
-            texture_atlas_sprite.flip_x = false;
-        }
-        if keyboard.pressed(KeyCode::A) {
-            velocity.linvel.x -= 1.;
-            texture_atlas_sprite.flip_x = true;
-        }
+    if let Ok((velocity, animation_timer, texture_atlas_sprite)) = player.get_single_mut() {
+        for (mut velocity, mut animation_timer, mut texture_atlas_sprite) in
+            iter::once((velocity, animation_timer, texture_atlas_sprite))
+                .chain(party_members.iter_mut())
+        {
+            velocity.linvel = Vec2::ZERO;
+            if keyboard.pressed(KeyCode::W) {
+                velocity.linvel.y += 1.;
+            }
+            if keyboard.pressed(KeyCode::S) {
+                velocity.linvel.y -= 1.;
+            }
+            if keyboard.pressed(KeyCode::D) {
+                velocity.linvel.x += 1.;
+                texture_atlas_sprite.flip_x = false;
+            }
+            if keyboard.pressed(KeyCode::A) {
+                velocity.linvel.x -= 1.;
+                texture_atlas_sprite.flip_x = true;
+            }
 
-        velocity.linvel = velocity.linvel.normalize_or_zero() * 200.0;
+            velocity.linvel = velocity.linvel.normalize_or_zero() * 200.0;
 
-        if velocity.linvel == Vec2::ZERO {
-            animation_timer.pause();
-        } else {
-            animation_timer.unpause();
+            if velocity.linvel == Vec2::ZERO {
+                animation_timer.pause();
+            } else {
+                animation_timer.unpause();
+            }
         }
     }
 }

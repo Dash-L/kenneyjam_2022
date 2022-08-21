@@ -1,11 +1,14 @@
 use bevy_rapier2d::prelude::*;
 use std::marker::PhantomData;
 
-use bevy::{ecs::component, prelude::*};
+use bevy::prelude::*;
 use num_derive::FromPrimitive;
 
 #[derive(Component, Default)]
 pub struct Health(pub f32, pub f32);
+
+#[derive(Component)]
+pub struct IsDead;
 
 #[derive(Component)]
 pub struct HasHealthBar;
