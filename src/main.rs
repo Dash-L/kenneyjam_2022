@@ -54,7 +54,6 @@ fn main() {
         .add_plugin(SpawnPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(AutoBattlePlugin)
-        .add_plugin(DragAndDropPlugin)
         .add_enter_system(GameState::Setup, setup)
         .add_system(animate_sprites)
         .add_system(animate_attacks)
@@ -68,8 +67,6 @@ fn main() {
 fn setup(
     mut commands: Commands,
     sprites: Res<Sprites>,
-    asset_server: Res<AssetServer>,
-    audio: Res<Audio>,
 ) {
     // Background
     commands.spawn_bundle(SpriteBundle {
