@@ -1,4 +1,4 @@
-use bevy::{app::AppExit, prelude::*};
+use bevy::{app::AppExit, audio::AudioSink, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
@@ -10,7 +10,7 @@ use crate::{
     },
     consts::{SPRITE_SCALE, TRANSPARENT},
     helpers::{button_pressed, despawn_with, go_to_state, update_buttons},
-    resources::{Fonts, Sprites},
+    resources::{Fonts, MusicController, Sounds, Sprites},
     GameState,
 };
 
@@ -27,10 +27,13 @@ pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_enter_system(GameState::MainMenu, setup_menu)
+        app.init_resource::<MusicController>()
+            .add_enter_system(GameState::MainMenu, setup_menu)
             .add_enter_system(GameState::MainMenu, spawn_player)
+            .add_enter_system(GameState::MainMenu, start_menu_music)
             .add_exit_system(GameState::MainMenu, despawn_with::<MainMenu>)
             .add_exit_system(GameState::MainMenu, show_player)
+            .add_exit_system(GameState::MainMenu, start_game_music)
             .add_system_set(
                 ConditionSet::new()
                     .run_in_state(GameState::MainMenu)
@@ -150,4 +153,31 @@ fn show_player(
 
 fn exit(mut ev: EventWriter<AppExit>) {
     ev.send(AppExit);
+}
+
+fn start_menu_music(
+    audio_sinks: Res<Assets<AudioSink>>,
+    audio: Res<Audio>,
+    mut music_controller: ResMut<MusicController>,
+    sound: Res<Sounds>,
+) {
+    if let Some(current) = audio_sinks.get(&music_controller.0) {
+        current.stop();
+    }
+    let music = sound.menu.clone();
+    let handle = audio_sinks.get_handle(audio.play(music));
+    music_controller.0 = handle;
+}
+fn start_game_music(
+    audio_sinks: Res<Assets<AudioSink>>,
+    audio: Res<Audio>,
+    mut music_controller: ResMut<MusicController>,
+    sound: Res<Sounds>,
+) {
+    if let Some(current) = audio_sinks.get(&music_controller.0) {
+        current.stop();
+    }
+    let music = sound.game.clone();
+    let handle = audio_sinks.get_handle(audio.play(music));
+    music_controller.0 = handle;
 }

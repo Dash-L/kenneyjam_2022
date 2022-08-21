@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{audio::AudioSink, ecs::system::Resource, prelude::*};
 use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection)]
@@ -71,9 +71,9 @@ pub struct Sounds {
     #[asset(path = "sounds/slashsound.wav")]
     pub slash: Handle<AudioSource>,
     #[asset(path = "sounds/menumusic.wav")]
-    pub menu: Handle<AudioSource>,
-    #[asset(path = "sounds/gamemusic.wav")]
     pub game: Handle<AudioSource>,
+    #[asset(path = "sounds/gamemusic.wav")]
+    pub menu: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection)]
@@ -96,3 +96,6 @@ pub struct EnemiesCount(pub u32);
 
 #[derive(Deref, DerefMut)]
 pub struct AllyCount(pub u32);
+
+#[derive(Default, Deref, DerefMut)]
+pub struct MusicController(pub Handle<AudioSink>);
