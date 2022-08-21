@@ -170,8 +170,6 @@ fn spawn_wave(
                 rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
                 1.0,
             ));
-        let mut timer = Timer::from_seconds(0.115, true);
-        timer.pause();
 
         if rng_chance >= 0.5 {
             println!("enemy spawned!");
@@ -256,7 +254,7 @@ fn spawn_wave(
                     ..default()
                 }),
             }
-            .insert(AnimationTimer(timer))
+            .insert(AnimationTimer(Timer::from_seconds(0.115, true)))
             .insert(Collider::cuboid(8.0, 8.0))
             .insert(LockedAxes::ROTATION_LOCKED);
         }

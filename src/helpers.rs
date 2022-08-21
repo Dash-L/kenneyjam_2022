@@ -30,7 +30,7 @@ pub fn animate_sprites(
         } else if timer.just_finished() {
             let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
             sprite.index = (sprite.index + 1) % (texture_atlas.textures.len());
-            if sprite.index == 0 {
+            if sprite.index == 0 && texture_atlas.textures.len() > 1 {
                 sprite.index = 1;
             }
         }
