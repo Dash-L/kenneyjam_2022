@@ -165,7 +165,8 @@ fn start_menu_music(
         current.stop();
     }
     let music = sound.menu.clone();
-    let handle = audio_sinks.get_handle(audio.play(music));
+    let handle = audio_sinks
+        .get_handle(audio.play_with_settings(music, PlaybackSettings::LOOP.with_volume(0.07)));
     music_controller.0 = handle;
 }
 fn start_game_music(
@@ -178,6 +179,7 @@ fn start_game_music(
         current.stop();
     }
     let music = sound.game.clone();
-    let handle = audio_sinks.get_handle(audio.play(music));
+    let handle = audio_sinks
+        .get_handle(audio.play_with_settings(music, PlaybackSettings::LOOP.with_volume(0.07)));
     music_controller.0 = handle;
 }

@@ -3,7 +3,7 @@ use crate::{
         AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health, InParty,
         Player,
     },
-    consts::{HEIGHT, SPRITE_SCALE, WIDTH, XEXTENT, YEXTENT},
+    consts::{SPRITE_SCALE, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
     AllyType, EnemyType, GameState,
 };
@@ -46,7 +46,7 @@ fn spawn_allies(
     sprites: Res<Sprites>,
     time: Res<Time>,
     mut spawn_timer: ResMut<AllySpawnTimer>,
-    mut ally_count: ResMut<AllyCount>,
+    ally_count: Res<AllyCount>,
 ) {
     spawn_timer.tick(time.delta());
 
@@ -157,7 +157,7 @@ fn spawn_wave(
     sprites: Res<Sprites>,
     time: Res<Time>,
     mut spawn_timer: ResMut<EnemySpawnTimer>,
-    mut enemy_count: ResMut<EnemiesCount>,
+    enemy_count: Res<EnemiesCount>,
 ) {
     spawn_timer.tick(time.delta());
 

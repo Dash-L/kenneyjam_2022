@@ -1,4 +1,4 @@
-use bevy::{audio::AudioSink, ecs::system::Resource, prelude::*};
+use bevy::{audio::AudioSink, prelude::*};
 use bevy_asset_loader::prelude::*;
 
 #[derive(AssetCollection)]
