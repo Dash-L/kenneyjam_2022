@@ -8,6 +8,7 @@ use iyes_loopless::prelude::*;
 use crate::{
     components::{AllyType, AnimationTimer, EnemyType, InParty, PartyRadius, Player},
     consts::SPRITE_SCALE,
+    helpers::player_death,
     GameState,
 };
 pub struct PlayerPlugin;
@@ -22,6 +23,7 @@ impl Plugin for PlayerPlugin {
                 .with_system(update_circle)
                 .with_system(add_to_party)
                 .with_system(move_enemies_towards_closest_ally)
+                .with_system(player_death)
                 .into(),
         )
         .add_system_set(

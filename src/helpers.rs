@@ -6,6 +6,7 @@ use crate::{
         Projectile,
     },
     consts::HEALTH_BAR_LEN,
+    resources::Sprites,
 };
 
 pub fn animate_sprites(
@@ -122,14 +123,21 @@ pub fn update_health_bars(
 
 pub fn despawn_zero_health(
     mut commands: Commands,
-    entities: Query<(Entity, &Health, Option<&Player>)>,
+    entities: Query<(Entity, &Health), Without<Player>>,
 ) {
-    for (entity, health, maybe_player) in &entities {
+    for (entity, health) in &entities {
         if health.0 <= 0.0 {
             commands.entity(entity).despawn_recursive();
-            if maybe_player.is_some() {
-                // you died screen or smth
-            }
         }
+    }
+}
+pub fn player_death(
+    sprites: Res<Sprites>,
+    mut player: Query<(&Health, &mut Handle<TextureAtlas>), With<Player>>,
+) {
+    let (health, mut animation) = player.single_mut();
+
+    if health.0 <= 0.0 {
+        *animation = sprites.player_death.clone();
     }
 }

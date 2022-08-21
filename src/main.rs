@@ -64,10 +64,7 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    sprites: Res<Sprites>,
-) {
+fn setup(mut commands: Commands, sprites: Res<Sprites>) {
     // Background
     commands.spawn_bundle(SpriteBundle {
         texture: sprites.background.clone(),
