@@ -19,6 +19,12 @@ pub struct MainHealthBar;
 #[derive(Component)]
 pub struct InParty;
 
+#[derive(Component, Default, Deref, DerefMut)]
+pub struct IndicatorEntity(pub Option<Entity>);
+
+#[derive(Component)]
+pub struct Indicator;
+
 #[derive(Component, Default)]
 pub struct PartyRadius(pub f32);
 
@@ -83,6 +89,7 @@ pub struct AllyBundle {
     pub damage: Damage,
     pub attack_range: AttackRange,
     pub attack_timer: AttackTimer,
+    pub indicator_entity: IndicatorEntity,
     #[bundle]
     pub sprite: SpriteSheetBundle,
 }
@@ -96,6 +103,7 @@ pub struct EnemyBundle {
     pub damage: Damage,
     pub attack_range: AttackRange,
     pub attack_timer: AttackTimer,
+    pub indicator_entity: IndicatorEntity,
     #[bundle]
     pub sprite: SpriteSheetBundle,
 }

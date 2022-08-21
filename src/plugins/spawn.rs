@@ -1,7 +1,7 @@
 use crate::{
     components::{
         AllyBundle, AnimationTimer, AttackRange, AttackTimer, Damage, EnemyBundle, Health, InParty,
-        Player,
+        PartyRadius, Player,
     },
     consts::{SPRITE_SCALE, XEXTENT, YEXTENT},
     resources::{AllyCount, AllySpawnTimer, EnemiesCount, EnemySpawnTimer, Sprites},
@@ -45,6 +45,7 @@ fn spawn_allies(
     mut commands: Commands,
     sprites: Res<Sprites>,
     time: Res<Time>,
+    player: Query<(&Transform, &PartyRadius), With<Player>>,
     mut spawn_timer: ResMut<AllySpawnTimer>,
     ally_count: Res<AllyCount>,
 ) {
@@ -53,12 +54,32 @@ fn spawn_allies(
     if spawn_timer.just_finished() && **ally_count < 1 {
         let mut rng = rand::thread_rng();
 
-        let transform =
-            Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
-                rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
-                rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
-                1.0,
-            ));
+        let (player_transform, party_radius) = player.single();
+        const MAX_TRIES: u32 = 100;
+        let mut i = 0;
+        let transform = loop {
+            let transform =
+                Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
+                    rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
+                    rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
+                    1.0,
+                ));
+
+            if transform
+                .translation
+                .truncate()
+                .distance(player_transform.translation.truncate())
+                > party_radius.0 * SPRITE_SCALE
+            {
+                break transform;
+            }
+
+            i += 1;
+            if i > MAX_TRIES {
+                return;
+            }
+        };
+
         let mut timer = Timer::from_seconds(0.115, true);
         timer.pause();
 
@@ -156,6 +177,7 @@ fn spawn_wave(
     mut commands: Commands,
     sprites: Res<Sprites>,
     time: Res<Time>,
+    player: Query<(&Transform, &PartyRadius), With<Player>>,
     mut spawn_timer: ResMut<EnemySpawnTimer>,
     enemy_count: Res<EnemiesCount>,
 ) {
@@ -164,12 +186,31 @@ fn spawn_wave(
     if spawn_timer.just_finished() && **enemy_count < 5 {
         let mut rng = rand::thread_rng();
         let rng_chance: f32 = rng.gen();
-        let transform =
-            Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
-                rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
-                rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
-                1.0,
-            ));
+        let (player_transform, party_radius) = player.single();
+        const MAX_TRIES: u32 = 100;
+        let mut i = 0;
+        let transform = loop {
+            let transform =
+                Transform::from_scale(Vec3::splat(SPRITE_SCALE)).with_translation(Vec3::new(
+                    rng.gen_range(XEXTENT.0 as i32..XEXTENT.1 as i32) as f32,
+                    rng.gen_range(YEXTENT.0 as i32..YEXTENT.1 as i32) as f32,
+                    1.0,
+                ));
+
+            if transform
+                .translation
+                .truncate()
+                .distance(player_transform.translation.truncate())
+                > party_radius.0 * SPRITE_SCALE
+            {
+                break transform;
+            }
+
+            i += 1;
+            if i > MAX_TRIES {
+                return;
+            }
+        };
 
         if rng_chance >= 0.5 {
             println!("enemy spawned!");

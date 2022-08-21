@@ -6,9 +6,13 @@ use bevy_rapier2d::prelude::*;
 use iyes_loopless::prelude::*;
 
 use crate::{
-    components::{AllyType, AnimationTimer, EnemyType, InParty, IsDead, PartyRadius, Player},
+    components::{
+        AllyType, AnimationTimer, EnemyType, InParty, Indicator, IndicatorEntity, IsDead,
+        PartyRadius, Player,
+    },
     consts::SPRITE_SCALE,
-    GameState, helpers::{check_player_death, player_death_animation},
+    helpers::{check_player_death, player_death_animation},
+    GameState,
 };
 pub struct PlayerPlugin;
 
@@ -23,6 +27,7 @@ impl Plugin for PlayerPlugin {
                 .with_system(add_to_party)
                 .with_system(move_enemies_towards_closest_ally)
                 .with_system(check_player_death)
+                .with_system(show_indicators)
                 .with_system(player_death_animation)
                 .into(),
         )
@@ -109,6 +114,78 @@ fn add_to_party(
     }
 }
 
+pub fn show_indicators(
+    mut commands: Commands,
+    player: Query<&Transform, With<Player>>,
+    mut entities: Query<
+        (
+            &Transform,
+            &mut IndicatorEntity,
+            Option<&AllyType>,
+            Option<&EnemyType>,
+        ),
+        (Without<Player>, Without<Indicator>),
+    >,
+    mut indicators: Query<
+        &mut Transform,
+        (With<Indicator>, Without<Player>, Without<IndicatorEntity>),
+    >,
+) {
+    let player_transform = player.single();
+    for (transform, mut indicator_entity, maybe_ally, maybe_enemy) in &mut entities {
+        if !(maybe_ally.is_some() || maybe_enemy.is_some()) {
+            continue;
+        }
+        let indicator_transform = Transform::from_translation(
+            player_transform.translation
+                + ((transform.translation.truncate() - player_transform.translation.truncate())
+                    .normalize()
+                    * 250.0)
+                    .extend(10.0),
+        );
+        let dist = player_transform
+            .translation
+            .truncate()
+            .distance(transform.translation.truncate());
+
+        if dist < 250.0 && indicator_entity.is_some() {
+            println!("visible with existing");
+            commands
+                .entity(indicator_entity.0.unwrap())
+                .despawn_recursive();
+            indicator_entity.0 = None;
+        } else if dist >= 250.0 {
+            println!("not visible");
+            if indicator_entity.is_none() {
+                println!("no existing");
+                indicator_entity.0 = Some(
+                    commands
+                        .spawn_bundle(SpriteBundle {
+                            transform: indicator_transform,
+                            sprite: Sprite {
+                                color: if maybe_ally.is_some() {
+                                    Color::GREEN
+                                } else {
+                                    Color::RED
+                                },
+                                custom_size: Some(Vec2::new(10.0, 10.0)),
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .insert(Indicator)
+                        .id(),
+                );
+            } else {
+                if let Ok(mut transform) = indicators.get_mut(indicator_entity.unwrap()) {
+                    println!("existing");
+                    *transform = indicator_transform;
+                }
+            }
+        }
+    }
+}
+
 fn keep_allies_in_circle(
     player: Query<(&Transform, &PartyRadius), With<Player>>,
     mut party_members: Query<(&Transform, &mut Velocity), With<InParty>>,
@@ -125,6 +202,11 @@ fn keep_allies_in_circle(
                 - transform.translation.truncate())
             .normalize()
                 * 400.0;
+        } else {
+            vel.linvel += (player_transform.translation.truncate()
+                - transform.translation.truncate())
+            .normalize()
+                * 10.0;
         }
     }
 }

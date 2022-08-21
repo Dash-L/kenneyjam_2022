@@ -6,8 +6,8 @@ use iyes_loopless::prelude::*;
 
 use crate::{
     components::{
-        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, IsDead, MainHealthBar, Player,
-        Projectile,
+        AllyType, AnimationTimer, EnemyType, HasHealthBar, Health, Indicator, IndicatorEntity,
+        IsDead, MainHealthBar, PartyRadius, Player, Projectile,
     },
     consts::{BUTTON_CLICKED, BUTTON_DEFAULT, BUTTON_HOVERED, HEALTH_BAR_LEN},
     resources::Sprites,
@@ -171,10 +171,28 @@ pub fn update_health_bars(
 
 pub fn despawn_zero_health(
     mut commands: Commands,
-    entities: Query<(Entity, &Health), Without<Player>>,
+    mut player: Query<&mut PartyRadius, With<Player>>,
+    entities: Query<
+        (
+            Entity,
+            &Health,
+            Option<&EnemyType>,
+            Option<&IndicatorEntity>,
+        ),
+        Without<Player>,
+    >,
 ) {
-    for (entity, health) in &entities {
+    for (entity, health, maybe_enemy, maybe_indicator) in &entities {
         if health.0 <= 0.0 {
+            if maybe_enemy.is_some() {
+                let mut radius = player.single_mut();
+                radius.0 += 0.05;
+            }
+            if let Some(indicator) = maybe_indicator {
+                if let Some(entity) = indicator.0 {
+                    commands.entity(entity).despawn_recursive();
+                }
+            }
             commands.entity(entity).despawn_recursive();
         }
     }
@@ -210,7 +228,19 @@ pub fn player_death_animation(
         ),
         (With<Player>, With<IsDead>),
     >,
-    entities: Query<Entity, (Without<Player>, Or<(With<AllyType>, With<EnemyType>)>)>,
+    entities: Query<
+        Entity,
+        (
+            Without<Player>,
+            Or<(
+                With<AllyType>,
+                With<EnemyType>,
+                With<Indicator>,
+                With<Projectile<AllyType>>,
+                With<Projectile<EnemyType>>,
+            )>,
+        ),
+    >,
 ) {
     for (
         entity,
